@@ -10,7 +10,7 @@ Packet::Packet(int s_id){
 		throw std::logic_error("Packet size not set.");
 
 	this->source_id = s_id;
-	time_stamp = std::chrono::system_clock::now();
+	time_stamp_creation = std::chrono::system_clock::now();
 	p_state = packet_state::GENERATED;
 }
 
