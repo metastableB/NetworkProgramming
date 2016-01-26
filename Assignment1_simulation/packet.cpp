@@ -17,3 +17,7 @@ Packet::Packet(int s_id){
 void Packet::set_packet_state(packet_state s){
 	p_state = s;
 }
+
+int Packet::get_source_id(){
+	return source_id;
+}

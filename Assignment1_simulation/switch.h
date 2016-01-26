@@ -4,36 +4,40 @@
 #include <stdexcept>
 #include <queue>
 #include "packet.h"
-/* We are going to implement packet switching for now.
-  Each packet is going to get queued in to the common queue whose size 
-  we will need to take as input.
 
-  There will only be one instance of a switch class. we need a globally 
-	The driver will call the enqueue handler with the pacet and the queue number 
-	if required.
-
-  */
 class Switch {
-	/* Milliseconds */
+	static int round_robin;
+	// Input in bps, handles in micro resolution
 	double packet_servicing_rate = 0;
-	std::queue<Packet*> master_q;
-	int q_size;
-	int q_size_max;
+	std::chrono::duration<long,std::micro> servicing_time_delta;
+	double sink_bw;
+	/* Vector of queues.
+	 * If its TDM the size of the vector is N
+	 * else its 1
+	 */
+	int num_sources;
+	std::vector<std::queue<Packet*>> master_q;
+	std::vector<int>q_size;
+	std::vector<int>q_size_max;
+	static const int& p_size;
+	static const bool& p_size_set;
+
+	void set_servicing_time_delta();
 public:
 	enum switch_operating_mode {
 		TDM,
 		PACKET_SWITCHING,
 		NOT_SET,
 	};
-	switch_operating_mode s = NOT_SET;
-	Switch(double psr,enum switch_operating_mode s);
-	Packet* enqueue(Packet* p);
-	Packet* dequeue();
+	switch_operating_mode switch_op_mode = NOT_SET;
+	Switch(double psr,enum switch_operating_mode s, int num_sources = 1);
+	Packet* enqueue(Packet* p, int i);
+	Packet* dequeue(int i);
 
-	Packet* arrival_handler_TDM(Packet* p, int index);
-	Packet* arrival_handler_PS(Packet* p);
-	/* at the servicing rate, called by handler,
-	   if time is right, service the packet */
-	void service_packet();
+	Packet* arrival_handler(Packet* p);
+	Packet* service_packet();
+
+	std::chrono::system_clock::time_point 
+	get_next_servicing_time_point(std::chrono::system_clock::time_point t);
 };
 #endif

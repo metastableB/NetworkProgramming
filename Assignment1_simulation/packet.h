@@ -30,6 +30,7 @@ public:
 	};
 	enum packet_state p_state;
 	Packet(int s_id);
+	int get_source_id();
 	void set_packet_state(packet_state s);
 };
 
