@@ -14,16 +14,25 @@
 #include <stdexcept>
 #include "packet.h"
 
+ /*
+  * Implementation notes.
+  * Technically the source class is not as abstracted or encapsulated as you'd like.
+  * The object should be able to govern the production and dispatching of packets on its
+  * own without external interference but this is not the case here. 
+  *
+  * Oh well!
+  */
+
 class Source {
 	int id;	
 	 /*WARNING: In bps */
 	double sending_rate;
-	double dispatchig_rate;
+	double dispatching_rate;
 	double link_bw;
-	/* previous sending time + sentind time delta = next sending time */
-	std::chrono::duration<double,std::milli> sending_time_delta;
+	/* previous sending time + sending time delta = next sending time */
+	std::chrono::duration<long,std::micro> sending_time_delta;
 	/* previous dispatch time + dispatch time delta = next dispatch time delta */
-	std::chrono::duration<double,std::milli> dispatch_time_delta;
+	std::chrono::duration<long,std::micro> dispatching_time_delta;
 	static const int& p_size;
 	static const bool& p_size_set;
 	
@@ -31,7 +40,7 @@ class Source {
 	/* Number of packets send in each burst */
 	double burst_size;
 	/* Time difference between two bursts in milliseconds*/
-	std::chrono::duration<double,std::milli> burst_time_delta;
+	std::chrono::duration<long,std::micro> burst_time_delta;
 	/* total number of packets sent in this burst */
 	double no_packets_sent;
 
@@ -49,13 +58,27 @@ public:
 	enum connection_type {
 		FIXED,
 		BURSTY	
-	};
+	} c_type;
+	
 	/* Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt; */
 	Source(double s_r, double link_bw, long max_q_size, enum connection_type x,
-		double b_sz = 0, std::chrono::duration<double,std::milli> btd = std::chrono::duration<double,std::milli>(0));
-
+		double b_sz = 0, 
+		std::chrono::duration<long,std::micro> btd = std::chrono::duration<long,std::micro>(0));
+	/* The above signature is why I feel C++ is a high maintanance lover! Okay yeah I know there are ways
+	around this but still */
+	Packet* generate_packet();
+	Packet* get_packet_for_dispatch();
 	long get_queue_size();
 	long get_max_queue_size();	
+	double get_sending_rate();
+	std::chrono::duration<long,std::micro> 
+		get_sending_time_delta();
+	std::chrono::duration<long,std::micro> 
+		get_dispatching_time_delta();
+	std::chrono::system_clock::time_point 
+		get_next_sending_time_point(std::chrono::system_clock::time_point t);
+	std::chrono::system_clock::time_point 
+			get_next_dispatching_time_point(std::chrono::system_clock::time_point t);
 	
 };
 #endif 
