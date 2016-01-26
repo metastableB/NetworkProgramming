@@ -4,11 +4,14 @@ main handler */
 #include "packet.h"
 #include "switch.h"
 
+// Weird name to prevent accidental modification
 static int p_size_do_1234;
 static bool p_size_set_do_1234 =  false;
 
 const bool& Packet::p_size_set(p_size_set_do_1234);
 const int& Packet::p_size(p_size_do_1234);
+const bool& Source::p_size_set(p_size_set_do_1234);
+const int& Source::p_size(p_size_do_1234);
 
 int main(){
 	p_size_do_1234 = 0;

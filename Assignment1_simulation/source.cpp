@@ -1,14 +1,23 @@
+/*
+* @author:metastableB
+* source.cpp
+*/ 
+
 #include "source.h"
+
 int Source::next_id = 0;
-/* Packet sending rate, link bandwidth, q_size, connection type, burst size, burst_time_delt; */
-Source::Source(double p_s_r, int l_bw, int q_sz,
-		enum connection_type c_t, int b_sz, 
-		std::chrono::duration<int,std::milli> btd ) {
+// Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt
+Source::Source(double p_s_r, double l_bw, long max_q_sz,
+		enum connection_type c_t, double b_sz, 
+		std::chrono::duration<double,std::milli> btd ) {
 	id = next_id++;	
 	link_bw = l_bw;
-	q_size_max = q_sz;
+	q_size_max = max_q_sz;
 	q_size = 0;
-	calulate_p_dispatching_rate();
+	calulate_dispatching_rate();
+	calculate_dispatching_time_delta();
+	calculate_sending_time_delta();
+
 	if(c_t == connection_type::BURSTY){
 		if(b_sz <= 0 || btd <= std::chrono::milliseconds(0))
 			throw std::invalid_argument("Invalid burst size and burst duration.");
@@ -16,27 +25,22 @@ Source::Source(double p_s_r, int l_bw, int q_sz,
 		burst_time_delta = btd;
 	}
 }
-/* Generator creates a new packet and envokes the dispatcher with the 
- * new packet */
-Packet* Source::packet_generator(){
-	Packet* p = new Packet(this->id);
-	//TODO : e.log("Packet creation time");
-	return packet_dispatcher(p);
+
+
+// Private methods
+void Source::calulate_dispatching_rate(){
+	dispatchig_rate = link_bw / p_size;
 }
-/* Dispatcher services packets from the queue at
- * the dispatching rate. Changes the packet status
- * indicator to dispatched. 
- */
-Packet* Source::packet_dispatcher(Packet* p = nullptr){
-	if(p!= nullptr)
-		enqueue(p);
-	//TODO: lOG Packet status, i.e if lost of queued
-	//TODO: if it is ready to be dispatched and then send
-	//TODO: We have to mod this for busty connections as well
-	Packet* p_ = dequeue();
-	p_->set_packet_state(Packet::packet_state::DISPATCHED);
-	return p_;
+
+void Source::calculate_dispatching_time_delta(){
+	dispatch_time_delta = std::chrono::duration<double,std::milli> (p_size/link_bw);
 }
+void Source::calculate_sending_time_delta(){
+	sending_time_delta = std::chrono::duration<double,std::milli> (p_size/sending_rate);
+}
+
+long Source::get_queue_size(){ return q_size;}
+long Source::get_max_queue_size() { return q_size_max;}
 
 Packet* Source::enqueue(Packet* p){
 	if(q_size >= q_size_max)
@@ -56,7 +60,4 @@ Packet* Source::dequeue(){
 	p_queue.pop();
 	q_size--;
 	return p;
-}
-void Source::calulate_p_dispatching_rate(){
-	p_dispatchig_rate = link_bw/p_sending_rate;
 }
