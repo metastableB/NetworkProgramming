@@ -94,6 +94,9 @@ Source::get_dispatching_time_delta() {
 	return dispatching_time_delta; 
 }
 
+void Source::set_is_transmitting(bool b){
+	is_transmitting = b;
+}
 
 Packet* Source::enqueue(Packet* p){
 	if(q_size >= q_size_max)

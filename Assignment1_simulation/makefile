@@ -12,6 +12,8 @@ CFLAGS=-std=c++11 -Wall
 FILES=./source.cpp \
 	  ./packet.cpp \
 	  ./switch.cpp \
+	  ./temporal_object.cpp\
+	  ./handler.cpp\
 	  ./main.cpp \
 
 # Source Targets 

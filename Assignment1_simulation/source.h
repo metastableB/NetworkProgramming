@@ -29,6 +29,7 @@ class Source {
 	double sending_rate;
 	double dispatching_rate;
 	double link_bw;
+	bool is_transmitting = false;
 	/* previous sending time + sending time delta = next sending time */
 	std::chrono::duration<long,std::micro> sending_time_delta;
 	/* previous dispatch time + dispatch time delta = next dispatch time delta */
@@ -71,6 +72,7 @@ public:
 	long get_queue_size();
 	long get_max_queue_size();	
 	double get_sending_rate();
+	void set_is_transmitting(bool b);
 	std::chrono::duration<long,std::micro> 
 		get_sending_time_delta();
 	std::chrono::duration<long,std::micro> 
