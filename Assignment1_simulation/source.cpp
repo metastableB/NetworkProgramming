@@ -17,6 +17,7 @@ Source::Source(double p_s_r, double l_bw, long max_q_sz,
 		std::chrono::duration<long,std::micro> btd ) {
 	if(p_size_set == false)
 		throw std::runtime_error("Packet size not set!\n");
+	sending_rate = p_s_r;
 	id = next_id++;	
 	link_bw = l_bw;
 	q_size_max = max_q_sz;
@@ -49,21 +50,21 @@ Packet* Source::get_packet_for_dispatch(){
 	return p;
 }
 
-std::chrono::system_clock::time_point 
-Source::get_next_sending_time_point(std::chrono::system_clock::time_point t){
+std::chrono::high_resolution_clock::time_point 
+Source::get_next_sending_time_point(std::chrono::high_resolution_clock::time_point t){
 	if(c_type == connection_type::FIXED)
 		return t + sending_time_delta;
 	else throw std::invalid_argument("BURST NOT YET SUPPORTED!\n");
 	return t;
 }
 
-std::chrono::system_clock::time_point 
-Source::get_next_dispatching_time_point(std::chrono::system_clock::time_point t){
+std::chrono::high_resolution_clock::time_point 
+Source::get_next_dispatching_time_point(std::chrono::high_resolution_clock::time_point t){
 	return t + dispatching_time_delta + std::chrono::nanoseconds(5);
 }
 
-std::chrono::system_clock::time_point 
-Source::get_next_arrival_time_point(std::chrono::system_clock::time_point t){
+std::chrono::high_resolution_clock::time_point 
+Source::get_next_arrival_time_point(std::chrono::high_resolution_clock::time_point t){
 	return t + dispatching_time_delta;
 }
 
@@ -78,9 +79,17 @@ void Source::calulate_dispatching_rate(){
 // system and chrono library caused this.
 void Source::calculate_dispatching_time_delta(){
 	dispatching_time_delta = std::chrono::microseconds((long)(p_size*1000000/link_bw));
+#ifdef _DEBUG_ 
+	std::cout << "Dispatching time delta for " << this->id <<
+	  " " << dispatching_time_delta.count() << '\n';
+#endif
 }
 void Source::calculate_sending_time_delta(){
 	sending_time_delta = std::chrono::microseconds((long)(p_size*1000000/sending_rate));
+#ifdef _DEBUG_ 
+	std::cout << "Sending time delta for " << this->id <<
+	  " " << sending_time_delta.count() << '\n';
+#endif
 }
 
 long Source::get_queue_size(){

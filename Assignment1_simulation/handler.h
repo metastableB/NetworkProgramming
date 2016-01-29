@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 #include <stdexcept>
+#include <map>
 
 #include "temporal_object.h"
 #include "source.h"
@@ -50,8 +51,8 @@ class Handler {
 	Switch *sw;
 	static const int& no_sources;
 
-	std::chrono::duration<long,std::nano> simulation_duration;
-	std::chrono::system_clock::time_point epoch;
+	std::chrono::duration<long,std::micro> simulation_duration;
+	std::chrono::high_resolution_clock::time_point epoch;
 	
 	// Handlers
 	void handler_generate(Temporal_Object*);
@@ -66,10 +67,10 @@ class Handler {
 	void transition(Temporal_Object*);
 public:
 	std::priority_queue<Temporal_Object*,std::vector<Temporal_Object*>,Temporal_Object> event_queue;
-	Handler(std::chrono::duration<long,std::nano> d, std::vector<Source> *s_l, Switch *s);
+	Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *s_l, Switch *s);
 	~Handler();
 	void simulate();
-	void print_queue_status();
+	void print_queue_status();	
 };
 #endif
 

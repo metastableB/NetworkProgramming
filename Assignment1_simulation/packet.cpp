@@ -8,10 +8,13 @@
 Packet::Packet(int s_id){			
 	if(!p_size_set)
 		throw std::logic_error("Packet size not set.");
-
+	id = next_id++;
 	this->source_id = s_id;
-	time_stamp_creation = std::chrono::system_clock::now();
+	time_stamp_creation = std::chrono::high_resolution_clock::now();
 	p_state = packet_state::GENERATED;
+#ifdef _DEBUG_
+	std::cout << source_id << " Packet generated " << id << " \n";
+#endif
 }
 
 void Packet::set_packet_state(packet_state s){
@@ -20,4 +23,8 @@ void Packet::set_packet_state(packet_state s){
 
 int Packet::get_source_id(){
 	return source_id;
+}
+
+int Packet::get_id(){
+	return id;
 }

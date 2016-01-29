@@ -16,9 +16,11 @@ class Packet {
 	static const int& p_size;	
 	static const bool& p_size_set;
 	int source_id;
-	std::chrono::system_clock::time_point time_stamp_creation;
+	int id;
+	std::chrono::high_resolution_clock::time_point time_stamp_creation;
 
 public:
+	static int next_id;
 	enum packet_state{
 		GENERATED,
 		QUEUED_SRC,
@@ -32,6 +34,6 @@ public:
 	Packet(int s_id);
 	int get_source_id();
 	void set_packet_state(packet_state s);
+	int get_id();
 };
-
 #endif

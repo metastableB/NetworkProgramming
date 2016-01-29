@@ -12,6 +12,7 @@
 
 class Temporal_Object {
 	/* this is where all the magic happens! */
+	
 public:
 	// Associated packet
 	Packet* packet;
@@ -27,15 +28,15 @@ public:
 		RECEIVED_SWITCH,
 		SERVICING,
 	} state;
-
-	std::chrono::system_clock::time_point key;
+	std::chrono::high_resolution_clock::time_point key;
+	
 	Temporal_Object(Source* s, Packet* p,
-		std::chrono::system_clock::time_point t,
+		std::chrono::high_resolution_clock::time_point t,
 		temporal_state st);
 	// Grin : just because I dont understand C++ properly
 	Temporal_Object();
-	Temporal_Object(Source* s, std::chrono::system_clock::time_point t, temporal_state st);
-
+	Temporal_Object(Source* s, std::chrono::high_resolution_clock::time_point t, temporal_state st);
+	std::string get_string_state();
 	bool operator()(Temporal_Object*,Temporal_Object*);
 };
 #endif

@@ -7,6 +7,7 @@ main handler */
 #include "temporal_object.h"
 
 // Weird name to prevent accidental modification
+int Packet::next_id = 0;
 static int p_size_do_1234;
 static bool p_size_set_do_1234 =  false;
 static int p_no_sources_do_1234 = 0;
@@ -36,9 +37,12 @@ int main(){
 	p_size_do_1234 = 100;
 	p_size_set_do_1234 = true;
 	p_no_sources_do_1234 = 2;
-	std::cout << " Starting Simulation \n";
+	std::cout << "Starting Simulation \n";
+	#ifdef _DEBUG_
+	std::cout << " All time durations measured in micro seconds\n";
+	#endif
 	// Packet sending rate, operation mode, num_sources
-	Switch sw(200,Switch::switch_operating_mode::PACKET_SWITCHING,2);
+	Switch sw(200,200,Switch::switch_operating_mode::TDM,2);
 	/* Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt; */
 	Source s(200,400,100,Source::connection_type::FIXED);
 	Source s2(200,400,100,Source::connection_type::FIXED);
@@ -46,7 +50,7 @@ int main(){
 	std::vector<Source> sv;
 	sv.push_back(s);
 	sv.push_back(s2);
-	Handler handler(std::chrono::seconds(1000),&sv,&sw);
+	Handler handler(std::chrono::seconds(5),&sv,&sw);
 	handler.simulate();
 	return 0;
 }

@@ -81,12 +81,12 @@ public:
 		get_sending_time_delta();
 	std::chrono::duration<long,std::micro> 
 		get_dispatching_time_delta();
-	std::chrono::system_clock::time_point 
-		get_next_sending_time_point(std::chrono::system_clock::time_point t);
-	std::chrono::system_clock::time_point 
-		get_next_arrival_time_point(std::chrono::system_clock::time_point t);
-	std::chrono::system_clock::time_point 
-		get_next_dispatching_time_point(std::chrono::system_clock::time_point t);
+	std::chrono::high_resolution_clock::time_point 
+		get_next_sending_time_point(std::chrono::high_resolution_clock::time_point t);
+	std::chrono::high_resolution_clock::time_point 
+		get_next_arrival_time_point(std::chrono::high_resolution_clock::time_point t);
+	std::chrono::high_resolution_clock::time_point 
+		get_next_dispatching_time_point(std::chrono::high_resolution_clock::time_point t);
 	
 };
 #endif 

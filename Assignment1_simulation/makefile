@@ -4,9 +4,12 @@
 # Variable declarations
 CC=	g++
 CFLAGS=-std=c++11 -Wall
-#ifeq ($(debug), 1)   
-	#CFLAGS += -g -D_DEBUG_
-#endif
+ifeq ($(debug), 1)   
+	CFLAGS += -g -D_DEBUG_
+endif
+ifeq ($(breakpoint),1)
+	CFLAGS += -g -D_BREAK_POINTS_
+endif
 
 # Define all source definitions here
 FILES=./source.cpp \
