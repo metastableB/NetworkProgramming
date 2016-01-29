@@ -30,13 +30,23 @@ int main(){
 	queue size at switch
 	Source type
 	Switch type
+	epoch for simulation start
+	duration for simulation
 	*/
-	p_size_do_1234 = 10;
+	p_size_do_1234 = 100;
 	p_size_set_do_1234 = true;
 	p_no_sources_do_1234 = 2;
-	std::cout << " LOL \n";
-	std::cout << p_size_do_1234 << p_size_set_do_1234;
-	Switch sw(2,Switch::switch_operating_mode::PACKET_SWITCHING);
-	Source s(3,3,3,Source::connection_type::FIXED);
+	std::cout << " Starting Simulation \n";
+	// Packet sending rate, operation mode, num_sources
+	Switch sw(200,Switch::switch_operating_mode::PACKET_SWITCHING,2);
+	/* Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt; */
+	Source s(200,400,100,Source::connection_type::FIXED);
+	Source s2(200,400,100,Source::connection_type::FIXED);
+	//Handler::Handler(std::chrono::duration<long,std::nano> d, std::vector<Source> *s_l, Switch *s){
+	std::vector<Source> sv;
+	sv.push_back(s);
+	sv.push_back(s2);
+	Handler handler(std::chrono::seconds(1000),&sv,&sw);
+	handler.simulate();
 	return 0;
 }

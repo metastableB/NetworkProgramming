@@ -6,6 +6,11 @@
 #include "source.h"
 
 int Source::next_id = 0;
+Source::Source(){
+	/* For defalut vector initialization. 
+	 * Why the fuck does a pointer to a vector require constructor anyway ?
+	 */
+}
 // Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt
 Source::Source(double p_s_r, double l_bw, long max_q_sz,
 		enum connection_type c_t, double b_sz, 
@@ -54,8 +59,14 @@ Source::get_next_sending_time_point(std::chrono::system_clock::time_point t){
 
 std::chrono::system_clock::time_point 
 Source::get_next_dispatching_time_point(std::chrono::system_clock::time_point t){
+	return t + dispatching_time_delta + std::chrono::nanoseconds(5);
+}
+
+std::chrono::system_clock::time_point 
+Source::get_next_arrival_time_point(std::chrono::system_clock::time_point t){
 	return t + dispatching_time_delta;
 }
+
 
 
 // Auxiliary methods
@@ -98,6 +109,12 @@ void Source::set_is_transmitting(bool b){
 	is_transmitting = b;
 }
 
+bool Source::get_is_transmitting(){
+	return is_transmitting;
+}
+int Source::get_id(){
+	return this->id;
+}
 Packet* Source::enqueue(Packet* p){
 	if(q_size >= q_size_max)
 		p->set_packet_state(Packet::packet_state::LOST_SRC);

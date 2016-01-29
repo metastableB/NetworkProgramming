@@ -61,6 +61,7 @@ public:
 		BURSTY	
 	} c_type;
 	
+	Source();
 	/* Packet sending rate, link bandwidth, max_q_size, connection type, burst size, burst_time_delt; */
 	Source(double s_r, double link_bw, long max_q_size, enum connection_type x,
 		double b_sz = 0, 
@@ -70,9 +71,12 @@ public:
 	Packet* generate_packet();
 	Packet* get_packet_for_dispatch();
 	long get_queue_size();
-	long get_max_queue_size();	
+	long get_max_queue_size();
+	int get_id();	
 	double get_sending_rate();
 	void set_is_transmitting(bool b);
+	bool get_is_transmitting();
+
 	std::chrono::duration<long,std::micro> 
 		get_sending_time_delta();
 	std::chrono::duration<long,std::micro> 
@@ -80,7 +84,9 @@ public:
 	std::chrono::system_clock::time_point 
 		get_next_sending_time_point(std::chrono::system_clock::time_point t);
 	std::chrono::system_clock::time_point 
-			get_next_dispatching_time_point(std::chrono::system_clock::time_point t);
+		get_next_arrival_time_point(std::chrono::system_clock::time_point t);
+	std::chrono::system_clock::time_point 
+		get_next_dispatching_time_point(std::chrono::system_clock::time_point t);
 	
 };
 #endif 
