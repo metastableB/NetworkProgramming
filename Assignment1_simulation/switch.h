@@ -35,6 +35,7 @@ public:
 	// Packet sending rate, operation mode, num_sources
 	Switch(double psr, double sink_bw,enum switch_operating_mode s,int num_sources = 1);
 	~Switch();
+	
 	Packet* arrival_handler(Packet* p);
 	Packet* service_packet();
 
