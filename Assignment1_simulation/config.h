@@ -14,9 +14,9 @@
 #define SRC_SENDING_RATE 400 //bps
 #define SRC_LINK_BW 200 //bps
 #define SRC_MAX_Q_SIZE 10
-#define SRC_CONNECTION_TYPE Source::connection_type::FIXED //FIXED/BURSTY
+#define SRC_CONNECTION_TYPE Source::connection_type::BURSTY //FIXED/BURSTY
 #define SRC_BURST_SIZE 10
-#define SRC_BURST_TIME_DELTA std::chrono::microseconds(5000000)
+#define SRC_BURST_TIME_DELTA std::chrono::microseconds(800000)
 
 #define SW_SERVICING_RATE 200
 #define SW_SINK_BW 200
@@ -29,8 +29,8 @@
 
 /* Log the queueing delay vs the parameters on y */
 #undef Q_DELAY_SRC_VS_Q_SIZE
-#define Q_DELAY_SRC_VS_P_SENDING_RATE
-#undef Q_DELAY_SRC_VS_BURST_SIZE
+#undef Q_DELAY_SRC_VS_P_SENDING_RATE
+#define Q_DELAY_SRC_VS_BURST_SIZE
 #undef Q_DELAY_SRC_VS_BURST_TIME_DELTA
 
 /* log outgoing queue vs switch queue on

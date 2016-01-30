@@ -29,6 +29,7 @@ void initialize_source(std::vector<Source>& vc);
 void packet_lost_src_vs_q_size();
 void q_delay_src_vs_q_size();
 void q_delay_src_vs_p_sending_rate();
+void q_delay_src_vs_burst_size();
 void dummy_test();
 
 int main(){
@@ -43,6 +44,8 @@ int main(){
 		q_delay_src_vs_q_size();
 	#elif defined(Q_DELAY_SRC_VS_P_SENDING_RATE)
 		q_delay_src_vs_p_sending_rate();
+	#elif defined(Q_DELAY_SRC_VS_BURST_SIZE)
+		q_delay_src_vs_burst_size();
 	#else
 		dummy_test();
 	#endif
@@ -56,6 +59,11 @@ void packet_lost_src_vs_q_size(){
 	FILE* fp;
 	fp = fopen(OUTPUT_FILE,"w");
 	long max_q = SRC_MAX_Q_SIZE;
+
+	if(SRC_CONNECTION_TYPE == Source::connection_type::BURSTY ||
+		SW_OPERATING_MODE == Switch::switch_operating_mode::TDM)
+		throw std::runtime_error("Cannot simulate in BURSTY/TDM\n");
+	
 	for(int i = 0; i < DATA_POINTS; i++) {
 		Source::next_id = 0;
 		if(i%10 == 0)
@@ -94,6 +102,11 @@ void packet_lost_src_vs_q_size(){
 void q_delay_src_vs_q_size(){
 	std::cout << "Logging average queuing delay at src vs Queue Size\n";
 	FILE* fp;
+
+	if(SRC_CONNECTION_TYPE == Source::connection_type::BURSTY ||
+		SW_OPERATING_MODE == Switch::switch_operating_mode::TDM)
+		throw std::runtime_error("Cannot simulate in BURSTY/TDM\n");
+	
 	fp = fopen(OUTPUT_FILE,"w");
 	long max_q = SRC_MAX_Q_SIZE;
 	for(int i = 0; i < DATA_POINTS; i++) {
@@ -135,6 +148,11 @@ void q_delay_src_vs_q_size(){
 void q_delay_src_vs_p_sending_rate(){
 	std::cout << "Logging average queuing delay at src vs packet sending rate\n";
 	FILE* fp;
+	
+	if(SRC_CONNECTION_TYPE == Source::connection_type::BURSTY ||
+		SW_OPERATING_MODE == Switch::switch_operating_mode::TDM)
+		throw std::runtime_error("Cannot simulate in BURSTY/TDM\n");
+	
 	fp = fopen(OUTPUT_FILE,"w");
 	long max_p_s_r = SRC_SENDING_RATE;
 	for(int i = 0; i < DATA_POINTS; i++) {
@@ -172,6 +190,53 @@ void q_delay_src_vs_p_sending_rate(){
 	std::system(command.c_str());
 }
 
+void q_delay_src_vs_burst_size() {
+	std::cout << "Logging average queuing delay at src vs burst size\n";
+	FILE* fp;
+	
+	if(SRC_CONNECTION_TYPE == Source::connection_type::FIXED ||
+		SW_OPERATING_MODE == Switch::switch_operating_mode::TDM)
+		throw std::runtime_error("Cannot simulate in FIXED/TDM\n");
+	
+	fp = fopen(OUTPUT_FILE,"w");
+	long max_bs = SRC_BURST_SIZE;
+	
+	for(int i = 0; i < DATA_POINTS; i++) {
+		Source::next_id = 0;
+		if(i%10 == 0)
+			std::cout << "Pass " << i << std::endl;
+		initialize_globals();
+		Switch* sw = nullptr;
+		initialize_switch(sw);
+		std::vector<Source> v_src;
+		/* initializing source */
+		max_bs = max_bs + INCREMENTS;
+		for(int i = 0; i < NUM_SOURCES; i++){
+			v_src.push_back(
+				Source(SRC_SENDING_RATE,
+				SRC_LINK_BW,
+				SRC_MAX_Q_SIZE,
+				SRC_CONNECTION_TYPE,
+				max_bs,
+				SRC_BURST_TIME_DELTA
+				)
+			);
+		}
+		Handler handler(SIM_DURATION,
+			&v_src,
+			sw);
+		handler.simulate();
+		fprintf(fp,"%ld\t%ld\n",max_bs,handler.average_queuing_delay.count()/1000000);
+	}
+	fclose(fp);
+	std::string args = std::string(OUTPUT_FILE) + " Burst_size " +"Average_queuing_delay[ms]";
+	std::string title = " Link_bw:_"+std::to_string(SRC_LINK_BW)+"bps,_Queue_Size_" + std::to_string(SRC_MAX_Q_SIZE);
+	title += ",_Sending_rate_"+std::to_string(SRC_SENDING_RATE);
+	std::string img_name = " q_delay_src_vs_burst_size";
+	std::string command = "python ./plotter.py " + args + title + img_name;
+	std::system(command.c_str());
+
+}
 void dummy_test(){
 	std::cout << "Dummy simulation\n";
 	initialize_globals();
