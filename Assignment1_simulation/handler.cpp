@@ -5,12 +5,11 @@
 
  #include "handler.h"
  
- #ifdef _DEBUG_
- std::chrono::high_resolution_clock::time_point epoch_start;
- long long int print_time_(std::chrono::high_resolution_clock::time_point t){
+std::chrono::high_resolution_clock::time_point epoch_start;
+long long int print_time_(std::chrono::high_resolution_clock::time_point t){
 	return (t - epoch_start).count();
 }
-
+ #ifdef _DEBUG_
 void print_event_(Temporal_Object* temporal){
 	printf("%d %s at %lld\n",temporal->source->get_id(),
 		temporal->get_string_state().c_str(),print_time_(temporal->key));
@@ -24,7 +23,7 @@ void break_point_(){
 }
 #endif	
 
-Handler::Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *s_l, Switch *s){
+Handler::Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *s_l, Switch *s,bool in_handler_write){
 	simulation_duration = d;
 	source_list = s_l;
 	sw = s;
@@ -32,41 +31,43 @@ Handler::Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *
 		throw std::invalid_argument("Duration for simulation is invalid\n");
 	if(no_sources <= 0)
 		throw std::invalid_argument("Number of sources not set!\n");
+	if(in_handler_write)
+		fp = fopen(OUTPUT_FILE,"w");
+	/* variables for event logging */
+	num_packets_lost_src = 0;
+	num_packets_queued_src = 0;
+	average_queuing_delay = std::chrono::microseconds(0);
 }
 
 void Handler::simulate(){
-	std::cout << "Initializing initial environment....\n";
+#ifdef SIM_PRINT
+	std::cout << "\nSimulation duration of " << simulation_duration.count() << " micro seconds\n";
+#endif
 	initialize();
-	std::cout << "Finished initializing\n";
-	std::cout << "Simulation duration of " << simulation_duration.count() << " micro seconds\n";
-	std::cout << "Now passing control to event loop.\n";
-	auto start = std::chrono::high_resolution_clock::now();
-	while(std::chrono::high_resolution_clock::now() - start <  simulation_duration){
+	auto intr = epoch;
+	while(true){
 		auto t = event_queue.top();
 		event_queue.pop();
+		intr = t->key;
+		if(intr - epoch >  simulation_duration) break;
 		transition(t);
-		auto intr = std::chrono::high_resolution_clock::now();
 		// Printing every 10 second interval
-		if(((intr -  start).count() % 10000000) == 0)
-			std::cout << "Time remaining: " << (((simulation_duration -(intr-start)).count())/1000000000)
-				<< " seconds\n";
+		if(((intr -  epoch).count() % 10000000) == 0)
+			std::cout << "Time remaining: " << (((simulation_duration -(intr-epoch)).count())/1000000000)
+				<< " seconds" <<std::endl;
 	}
-	auto stop = std::chrono::high_resolution_clock::now();
+#ifdef SIM_PRINT
 	std::cout << "Simulation finished successfully\n";
-	std::cout << "Run time " << (stop - start).count()/1000000000 << " seconds \n";
+	std::cout << "Simulation time " << (intr - epoch).count()/1000000000 << " seconds \n";
+#endif
 }
 void Handler::initialize(){
 	/* 
 	 * At this point we have all the initialized sources and switch. 
 	 * we just need to start the simulations and log the output
 	 */
-#ifdef _DEBUG_
 	 epoch_start = std::chrono::high_resolution_clock::now();
 	 epoch = epoch_start;
-#else
-	 epoch = std::chrono::high_resolution_clock::now();
-#endif
-
 	 for(size_t i = 0; i < source_list->size(); i++){
 	 	Source &x = source_list->at(i);
 	 	if(x.get_max_queue_size() <= 0){
@@ -141,15 +142,16 @@ void Handler::handler_generate(Temporal_Object* temporal){
 	// This method independently creates packets at the sending rate
 	// These packets are queued at SRC and the QUEUED_SRC state becomes
 	// redundant. 
-	
 	Source* src = temporal->source;
-	Packet* p = src->generate_packet();
+	Packet* p = src->generate_packet(temporal->key);
 #ifdef _DEBUG_
 	auto old_tp = temporal->key;
 #endif
-	if(p->p_state == Packet::packet_state::LOST_SRC)
-		//TODO Handle lost packets;
-		;
+	if(p->p_state == Packet::packet_state::LOST_SRC){
+		if(p->get_source_id() == 0)
+			num_packets_lost_src++;
+		delete p;
+	} else p->queue_time_point = temporal->key;
 	// Schedule next generation time for this source.
 	temporal->key = src->get_next_sending_time_point(temporal->key)+std::chrono::milliseconds(1);
 	event_queue.push(temporal);
@@ -173,6 +175,14 @@ void Handler::handler_transmit(Temporal_Object* temporal) {
 #ifdef _DEBUG_
 		std::cout << src->get_id() << " transfered packet: " << p->get_id() << "\n";
 #endif
+		// Calculating average queuing delay
+		if(p->get_source_id() == 0){
+			auto qtp = p->get_queueing_delay(temporal->key);
+			average_queuing_delay = (average_queuing_delay*num_packets_queued_src + qtp);
+			//std::cout << "avq q d "<< average_queuing_delay.count() << std::endl;
+			average_queuing_delay = std::chrono::nanoseconds(average_queuing_delay/(++num_packets_queued_src));
+			//std::cout << "avq q d "<< average_queuing_delay.count() << std::endl;
+		}
 		temporal->packet = p;
 		auto old_tp = temporal->key;
 		temporal->key = src->get_next_arrival_time_point(old_tp);
@@ -202,12 +212,16 @@ void Handler::handler_transmit(Temporal_Object* temporal) {
 void Handler::handler_received_switch(Temporal_Object* temporal) {
 	// enqueue the packet to the appropriate queue
 	// delete this temporal object but not the packet
-	sw->arrival_handler(temporal->packet);
+	auto  p = sw->arrival_handler(temporal->packet);
+	if(p->p_state == Packet::packet_state::LOST_SW)
+		delete p;
+	else{
+		;
 #if _DEBUG_
 	printf("SWITCH queued packet %d from %d.\n",temporal->packet->get_id(),
 		temporal->source->get_id());
 #endif
-	delete temporal->packet;
+	}
 	delete temporal;
 }
 
@@ -231,6 +245,5 @@ void Handler::handler_servicing(Temporal_Object* temporal) {
 		printf("SWITCH queue empty. Next scheduled %lld\n",print_time_(temporal->key));
 #endif	
 	}
-
 	event_queue.push(temporal);
 }

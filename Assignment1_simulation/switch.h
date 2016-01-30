@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <queue>
 #include "packet.h"
+#include "config.h"
 
 class Switch {
 	static int round_robin;
@@ -32,8 +33,8 @@ public:
 		NOT_SET,
 	};
 	switch_operating_mode switch_op_mode = NOT_SET;
-	// Packet sending rate, operation mode, num_sources
-	Switch(double psr, double sink_bw,enum switch_operating_mode s,int num_sources = 1);
+	// Packet servicing rate,sink_bw, operation mode, num_sources
+	Switch(double psr, double sink_bw,enum switch_operating_mode s,int num_sources = 1,int q_s_m = 3);
 	~Switch();
 	
 	Packet* arrival_handler(Packet* p);

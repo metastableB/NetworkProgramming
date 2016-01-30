@@ -68,7 +68,7 @@ public:
 		std::chrono::duration<long,std::micro> btd = std::chrono::duration<long,std::micro>(0));
 	/* The above signature is why I feel C++ is a high maintanance lover! Okay yeah I know there are ways
 	around this but still */
-	Packet* generate_packet();
+	Packet* generate_packet(std::chrono::high_resolution_clock::time_point t);
 	Packet* get_packet_for_dispatch();
 	long get_queue_size();
 	long get_max_queue_size();

@@ -6,13 +6,16 @@
 #define HANDLER_H
 
 #include <queue>
+#include <string>
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <cstdio>
 
 #include "temporal_object.h"
 #include "source.h"
 #include "switch.h"
+#include "config.h"
 /*
  *
  * MAGIC/ LOGIC
@@ -46,6 +49,8 @@
  * Similarly a Switch reference is also required.
  */
 class Handler {
+	// Output file for write
+	FILE * fp;
 	std::vector<Source> *source_list;
 	bool is_servicing = false;
 	Switch *sw;
@@ -67,10 +72,17 @@ class Handler {
 	void transition(Temporal_Object*);
 public:
 	std::priority_queue<Temporal_Object*,std::vector<Temporal_Object*>,Temporal_Object> event_queue;
-	Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *s_l, Switch *s);
+	Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *s_l, 
+		Switch *s,bool in_handler_write = false);
 	~Handler();
 	void simulate();
-	void print_queue_status();	
+	void print_queue_status();
+
+	/* Variables for logging purposes */
+	long num_packets_lost_src;
+	/* this is used to calculate a running average and is not what the name suggests */
+	long num_packets_queued_src;
+	std::chrono::duration<long,std::nano> average_queuing_delay;
 };
 #endif
 

@@ -31,15 +31,22 @@ Source::Source(double p_s_r, double l_bw, long max_q_sz,
 			throw std::invalid_argument("Invalid burst size and burst duration.\n");
 		burst_size = b_sz;
 		burst_time_delta = btd;
+		no_packets_sent = 0;
+		if(sending_time_delta >= burst_time_delta){
+			std::cout << "Sending time delta " <<  sending_time_delta.count() 
+				<< " burst time delta " << burst_time_delta.count() << std::endl;
+			throw std::logic_error("The sending time delta >= burst time delta\n");
+		}
 	} else c_type = connection_type::FIXED;
 }
 
 
-Packet* Source::generate_packet(){
+Packet* Source::generate_packet(std::chrono::high_resolution_clock::time_point t){
 	// Packet GENERATED
-	Packet* p = new Packet(this->id);
+	Packet* p = new Packet(this->id,t);
 	// Packet either in Packet::LOST_SRC or Packet::QUEUED_SRC
 	enqueue(p);
+	p->queue_time_point = t;
 	return p;
 }
 
@@ -54,8 +61,14 @@ std::chrono::high_resolution_clock::time_point
 Source::get_next_sending_time_point(std::chrono::high_resolution_clock::time_point t){
 	if(c_type == connection_type::FIXED)
 		return t + sending_time_delta;
-	else throw std::invalid_argument("BURST NOT YET SUPPORTED!\n");
-	return t;
+	else {
+		if(no_packets_sent == burst_size){
+			no_packets_sent = 0;
+			return t + burst_time_delta;
+		}
+		no_packets_sent++;
+		return t + sending_time_delta;
+	}
 }
 
 std::chrono::high_resolution_clock::time_point 
@@ -67,8 +80,6 @@ std::chrono::high_resolution_clock::time_point
 Source::get_next_arrival_time_point(std::chrono::high_resolution_clock::time_point t){
 	return t + dispatching_time_delta;
 }
-
-
 
 // Auxiliary methods
 void Source::calulate_dispatching_rate(){

@@ -1,6 +1,6 @@
 #include "switch.h"
 
-Switch::Switch(double psr,double sbw,enum switch_operating_mode s, int num_sources){
+Switch::Switch(double psr,double sbw,enum switch_operating_mode s, int num_sources,int q_s_m){
 	packet_servicing_rate = psr;
 	this->num_sources = num_sources;
 	sink_bw = sbw;
@@ -10,10 +10,16 @@ Switch::Switch(double psr,double sbw,enum switch_operating_mode s, int num_sourc
 		master_q.resize(1);
 		q_size.resize(1);
 		q_size_max.resize(1);
+		q_size_max[0] = q_s_m;
+		q_size[0] = 0;
 	} else {
 		master_q.resize(num_sources);
 		q_size.resize(num_sources);
 		q_size_max.resize(num_sources);
+		for(int i = 0 ; i < num_sources; i++){
+			q_size_max[i] = q_s_m;
+			q_size[i] = 0;
+		}
 	}
 }
 
