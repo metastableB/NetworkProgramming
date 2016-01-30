@@ -3,10 +3,13 @@ A network simulator with muli source and single switch simulation. The switch su
 
 ## TODO
 - [ ] Burst Mode debugging
-- [ ] Burst size vs queuing delay
-- [X] Lost packets vs Queue size
-- [X] Queuing delay vs Packet sending rate
-- [X] Queuing delay vs Queue size at source
+- [ ] Queuing delay vs Burst Size
+- [ ] Queuing delay vs Burst Time Delta
+- [X] Queuing delay vs Packet Sending Rate
+- [X] Queuing delay vs Queue Size at Source
+- [X] Lost Packets at Source vs Queue size
+- [ ] Lost Packets at Switch vs Switch Queue size
+- [ ] Out Queue vs Switch Queue
 - [ ] Move images to `/img`
 - [ ] Move source files o `/src`
 - [ ] ISSUE : `valgrind` reports memory leaks. Investigate.

@@ -31,6 +31,6 @@ plt.xlabel(sys.argv[2].replace("_"," "))
 plt.ylabel(sys.argv[3].replace("_"," "))
 plt.grid(True)
 plt.title(sys.argv[4].replace("_"," "))
-plt.savefig(sys.argv[5])
+plt.savefig("./img/"+sys.argv[5])
 plt.show();
 
