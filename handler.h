@@ -83,6 +83,7 @@ public:
 	/* this is used to calculate a running average and is not what the name suggests */
 	long num_packets_queued_src;
 	std::chrono::duration<long,std::nano> average_queuing_delay;
+	long num_packets_lost_sw;
 };
 #endif
 

@@ -8,8 +8,8 @@ A network simulator with muli source and single switch simulation. The switch su
 - [X] Queuing delay vs Packet Sending Rate
 - [X] Queuing delay vs Queue Size at Source
 - [X] Lost Packets at Source vs Queue size
-- [ ] Lost Packets at Switch vs Switch Queue size
+- [X] Lost Packets at Switch vs Switch Queue size
 - [ ] Out Queue vs Switch Queue
-- [ ] Move images to `/img`
+- [X] Move images to `/img`
 - [ ] Move source files o `/src`
 - [ ] ISSUE : `valgrind` reports memory leaks. Investigate.

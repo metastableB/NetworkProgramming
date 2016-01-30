@@ -27,6 +27,7 @@ void initialize_switch(Switch*&);
 void initialize_source(std::vector<Source>& vc);
 	
 void packet_lost_src_vs_q_size();
+void packet_lost_sw_vs_q_size();
 void q_delay_src_vs_q_size();
 void q_delay_src_vs_p_sending_rate();
 void q_delay_src_vs_burst_size();
@@ -46,6 +47,8 @@ int main(){
 		q_delay_src_vs_p_sending_rate();
 	#elif defined(Q_DELAY_SRC_VS_BURST_SIZE)
 		q_delay_src_vs_burst_size();
+	#elif defined(P_LOST_SW_VS_Q_SIZE)
+		packet_lost_sw_vs_q_size();
 	#else
 		dummy_test();
 	#endif
@@ -237,6 +240,50 @@ void q_delay_src_vs_burst_size() {
 	std::system(command.c_str());
 
 }
+
+
+void packet_lost_sw_vs_q_size(){
+	std::cout << "Logging Packet Lost at Switch vs Queue Size\n";
+	FILE* fp;
+	fp = fopen(OUTPUT_FILE,"w");
+
+	if(SRC_CONNECTION_TYPE == Source::connection_type::BURSTY ||
+		SW_OPERATING_MODE == Switch::switch_operating_mode::TDM)
+		throw std::runtime_error("Cannot simulate in BURSTY/TDM\n");
+	
+	long max_sw_q = SRC_MAX_Q_SIZE;
+	for(int i = 0; i < DATA_POINTS; i++) {
+		Source::next_id = 0;
+		if(i%10 == 0)
+			std::cout << "Pass " << i << std::endl;
+		initialize_globals();
+
+		max_sw_q = max_sw_q + INCREMENTS;
+		
+		Switch* sw = nullptr;
+		sw = new Switch(SW_SERVICING_RATE,
+		SW_SINK_BW,
+		SW_OPERATING_MODE,
+		NUM_SOURCES,
+		max_sw_q);
+
+		std::vector<Source> v_src;
+		initialize_source(v_src);
+		Handler handler(SIM_DURATION,
+			&v_src,
+			sw);
+		handler.simulate();
+		fprintf(fp,"%ld\t%ld\n",max_sw_q,handler.num_packets_lost_sw);
+	}
+	fclose(fp);
+	std::string args = std::string(OUTPUT_FILE) + " Switch_queue_size " +"Number_of_Packets_Lost";
+	std::string title = " Link_bw:_"+std::to_string(SRC_LINK_BW)+"bps,_Servicing_rate_" + std::to_string(SW_SERVICING_RATE)+"bps";
+	std::string img_name = " packet_lost_sw_vs_q_size";
+	std::string command = "python ./plotter.py " + args + title + img_name;
+	std::system(command.c_str());
+}
+
+
 void dummy_test(){
 	std::cout << "Dummy simulation\n";
 	initialize_globals();

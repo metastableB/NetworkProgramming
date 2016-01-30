@@ -36,6 +36,7 @@ Handler::Handler(std::chrono::duration<long,std::micro> d, std::vector<Source> *
 	/* variables for event logging */
 	num_packets_lost_src = 0;
 	num_packets_queued_src = 0;
+	num_packets_lost_sw = 0;
 	average_queuing_delay = std::chrono::microseconds(0);
 }
 
@@ -213,8 +214,10 @@ void Handler::handler_received_switch(Temporal_Object* temporal) {
 	// enqueue the packet to the appropriate queue
 	// delete this temporal object but not the packet
 	auto  p = sw->arrival_handler(temporal->packet);
-	if(p->p_state == Packet::packet_state::LOST_SW)
+	if(p->p_state == Packet::packet_state::LOST_SW){
+		num_packets_lost_sw++;
 		delete p;
+	}
 	else{
 		;
 #if _DEBUG_
