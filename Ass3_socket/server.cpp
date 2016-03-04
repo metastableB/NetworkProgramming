@@ -26,6 +26,11 @@
 #define BACKLOG 10	 // how many pending connections queue will hold
 #define MAXDATASIZE 256
 
+void* rthread_func(void *);
+struct rthread_args{
+	int sockfd;
+};
+
 void sigchld_handler(int s) {
 	// waitpid() might overwrite errno, so we save and restore it:
 	int saved_errno = errno;
@@ -103,7 +108,7 @@ int main(void) {
 
 	printf("server: waiting for connections...\n");
 
-
+	char buf[MAXDATASIZE];
 	sin_size = sizeof their_addr;
 	new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
 	if (new_fd == -1) {
@@ -117,9 +122,25 @@ int main(void) {
 	printf("server: got connection from %s\n", s);
 
 	close(sockfd); // We dont listen anymore
-
+	pthread_t rthread;
+	struct rthread_args rarg;
+	rarg.sockfd = new_fd;
+	if(pthread_create(&rthread, NULL, rthread_func, &rarg)) {
+		fprintf(stderr, "Error creating thread\n");
+		exit(1);
+	}
+	while(1){
+		int bread;
+		bread = recv(new_fd, buf, MAXDATASIZE - 1, 0);
+		if(bread <= 0){
+			perror("recv");
+			exit(1);
+		}
+		buf[bread] = '\0';
+		printf("Server: received '%s'\n",buf);	
+	}
 	/* here we have to both write and read from STDIN STDOUT and sockets */
-	struct timeval tv;
+	/*struct timeval tv;
     fd_set readfds, writefds;
 
     tv.tv_sec = 0;
@@ -170,8 +191,18 @@ int main(void) {
 					perror("send");
     		}
     	}
-    }
+    }*/
 	close(new_fd);  
 	return 0;
 }
 
+void *rthread_func(void *p_){
+	int sockfd = ((struct rthread_args*)p_)->sockfd;
+	while(1){
+		std::cout << "Reading\n";
+		std::string s;
+		getline(std::cin,s);
+		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
+			perror("send");	
+	}
+}

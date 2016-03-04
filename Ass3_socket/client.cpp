@@ -147,7 +147,7 @@ void *rthread_func(void *p_){
 	while(1){
 		std::cout << "Reading\n";
 		std::string s;
-		std::cin >> s;
+		getline(std::cin,s);
 		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
 			perror("send");	
 	}
