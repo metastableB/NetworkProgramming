@@ -96,58 +96,19 @@ int main(int argc, char *argv[]){
 			exit(1);
 		}
 		buf[bread] = '\0';
-		printf("client: received '%s'\n",buf);	
+		printf("%s\n",buf);	
 	}
-	/* we use two threads. One will read from STDIO and */
-
-	/*
-	while(i < 1001100){
-		i++;
-		sleep(1);
-		if (FD_ISSET(STDIN, &readfds)){
-        	std::cin >> msg;
-        	q_sin.push(msg);
-    	}
-    	if(FD_ISSET(sockfd, &readfds)){
-    		int bread;
-    		bread = recv(sockfd, buf, MAXDATASIZE - 1, 0);
-    		if(bread <= 0){
-    			perror("recv");
-    			exit(1);
-    		}
-    		buf[bread] = '\0';
-    		q_skt.push(buf);
-    	}
-    	if(FD_ISSET(STDOUT, &writefds)){
-    		while(!q_sin.empty()){
-    			auto t = q_sin.front();
-    			q_sin.pop();
-    			std::cout << t << '\n';
-    		}
-    	}
-    	if(FD_ISSET(sockfd, &writefds)){
-    		while(!q_skt.empty()){
-    			auto t = q_skt.front();
-    			q_skt.pop();
-    			if (send(sockfd, t.c_str(), t.length(), 0) == -1)
-					perror("send");
-    		}
-    	}
-
-	}
-	printf("client: received '%s'\n",buf);*/
-
 	close(sockfd);
-
 	return 0;
 }
 
 void *rthread_func(void *p_){
 	int sockfd = ((struct rthread_args*)p_)->sockfd;
 	while(1){
-		std::cout << "Reading\n";
+		std::string username = "nemesis6T9: ";
 		std::string s;
 		getline(std::cin,s);
+		s = username + s;
 		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
 			perror("send");	
 	}

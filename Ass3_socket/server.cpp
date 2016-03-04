@@ -137,71 +137,20 @@ int main(void) {
 			exit(1);
 		}
 		buf[bread] = '\0';
-		printf("Server: received '%s'\n",buf);	
+		printf("%s\n",buf);	
 	}
-	/* here we have to both write and read from STDIN STDOUT and sockets */
-	/*struct timeval tv;
-    fd_set readfds, writefds;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 250000;
-
-    FD_ZERO(&readfds);
-    FD_SET(STDIN, &readfds);
-    FD_SET(new_fd, &readfds);
-
-    FD_ZERO(&writefds);
-    FD_SET(STDOUT,&writefds);
-    FD_SET(new_fd, &writefds);
-
-    // don't care about writefds and exceptfds:
-    select(new_fd+1, &readfds, &writefds, NULL, &tv);
-    char buf[MAXDATASIZE];
-    std::queue<std::string> q_sin, q_skt;
-    std::string msg;
-    while(1) {
-    //std::cout << "enterdloop" << std::endl;
-    	if (FD_ISSET(STDIN, &readfds)){
-    //		std::cout << "reading\n" << std::endl;
-        	std::cin >> msg;
-        	q_sin.push(msg);
-    	}
-    	if(FD_ISSET(new_fd, &readfds)){
-    		int bread;
-    		bread = recv(new_fd, buf, MAXDATASIZE-1, 0);
-    		if(bread <= 0){
-    			perror("recv");
-    			exit(1);
-    		}
-    		buf[bread] = '\0';
-    		q_skt.push(buf);
-    	}
-    	if(FD_ISSET(STDOUT, &writefds)){
-    		while(!q_sin.empty()){
-    			auto t = q_sin.front();
-    			q_sin.pop();
-    			std::cout << t << '\n';
-    		}
-    	}
-    	if(FD_ISSET(new_fd, &writefds)){
-    		while(!q_skt.empty()){
-    			auto t = q_skt.front();
-    			q_skt.pop();
-    			if (send(new_fd, t.c_str(), t.length(), 0) == -1)
-					perror("send");
-    		}
-    	}
-    }*/
 	close(new_fd);  
 	return 0;
 }
 
+
 void *rthread_func(void *p_){
 	int sockfd = ((struct rthread_args*)p_)->sockfd;
 	while(1){
-		std::cout << "Reading\n";
+		std::string username = "metastableB: ";
 		std::string s;
 		getline(std::cin,s);
+		s = username + s;
 		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
 			perror("send");	
 	}
