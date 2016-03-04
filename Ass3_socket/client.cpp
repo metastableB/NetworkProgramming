@@ -22,6 +22,11 @@
 #define MAXDATASIZE 256
 #define PORT "3490" // the port client will be connecting to 
 
+void* rthread_func(void *);
+struct rthread_args{
+	int sockfd;
+};
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa){
 	if (sa->sa_family == AF_INET) {
@@ -76,26 +81,26 @@ int main(int argc, char *argv[]){
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(servinfo); // all done with this structure
-	
-	/* here we have to both write and read from STDIN STDOUT and sockets */
-	struct timeval tv;
-    fd_set readfds, writefds;
+	pthread_t rthread;
+	struct rthread_args rarg;
+	rarg.sockfd = sockfd;
+	if(pthread_create(&rthread, NULL, rthread_func, &rarg)) {
+		fprintf(stderr, "Error creating thread\n");
+		exit(1);
+	}
+	while(1){
+		int bread;
+		bread = recv(sockfd, buf, MAXDATASIZE - 1, 0);
+		if(bread <= 0){
+			perror("recv");
+			exit(1);
+		}
+		buf[bread] = '\0';
+		printf("client: received '%s'\n",buf);	
+	}
+	/* we use two threads. One will read from STDIO and */
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 250000;
-
-    FD_ZERO(&readfds);
-    FD_SET(STDIN, &readfds);
-    FD_SET(sockfd, &readfds);
-
-    FD_ZERO(&writefds);
-    FD_SET(STDOUT,&writefds);
-    FD_SET(sockfd, &writefds);
-
-    select(sockfd+1, &readfds, &writefds, NULL, &tv);
-    std::queue<std::string> q_sin, q_skt;
-    std::string msg;
-	int i = 0;
+	/*
 	while(i < 1001100){
 		i++;
 		sleep(1);
@@ -130,9 +135,20 @@ int main(int argc, char *argv[]){
     	}
 
 	}
-	printf("client: received '%s'\n",buf);
+	printf("client: received '%s'\n",buf);*/
+
 	close(sockfd);
 
 	return 0;
 }
 
+void *rthread_func(void *p_){
+	int sockfd = ((struct rthread_args*)p_)->sockfd;
+	while(1){
+		std::cout << "Reading\n";
+		std::string s;
+		std::cin >> s;
+		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
+			perror("send");	
+	}
+}
