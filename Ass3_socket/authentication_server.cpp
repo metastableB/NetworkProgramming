@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 #include <queue>
+#include <map>
 
 #define STDOUT 1
 #define STDIN 0
@@ -29,6 +30,9 @@ void* rthread_func(void *);
 struct rthread_args{
 	int sockfd;
 };
+
+std::map<std::string,std::pair<std::string,int>> userlist;
+
 
 void sigchld_handler(int s) {
 	// waitpid() might overwrite errno, so we save and restore it:
@@ -106,6 +110,12 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+	/* Manually adding the user information */
+	userlist["u_001"] = std::pair<std::string,int>("p_001",0);
+	userlist["u_002"] = std::pair<std::string,int>("p_002",0);
+	userlist["u_003"] = std::pair<std::string,int>("p_003",0);
+	userlist["u_004"] = std::pair<std::string,int>("p_004",0);
+
 	printf("server: waiting for connections...\n");
 
 	char buf[MAXDATASIZE];
@@ -133,14 +143,13 @@ int main(int argc, char* argv[]) {
 		s, sizeof s);
 	printf("server: got connection from %s\n", s);
 
-	close(sockfd); // We dont listen anymore
-	pthread_t rthread;
+/*	pthread_t rthread;
 	struct rthread_args rarg;
 	rarg.sockfd = new_fd;
 	if(pthread_create(&rthread, NULL, rthread_func, &rarg)) {
 		fprintf(stderr, "Error creating thread\n");
 		exit(1);
-	}
+	}*/
 	while(1){
 		int bread;
 		bread = recv(new_fd, buf, MAXDATASIZE - 1, 0);
@@ -149,7 +158,44 @@ int main(int argc, char* argv[]) {
 			exit(1);
 		}
 		buf[bread] = '\0';
-		printf("%s\n",buf);	
+		printf("%s\n",buf);
+		std::string auth(buf);
+		auth  = auth + '|';
+		int n1 = 0,n2 = auth.find('|',0);
+		if(!(auth.substr(0,n2) == "AUTHENTICATE")) {
+			std::cout << auth.substr(0,n2+1) << " Garbage\n";
+			std::string s  = "GARBAGE MESSAGE RECEIVED";
+			if (send(new_fd, s.c_str(), s.length(), 0) == -1)
+				perror("send");	
+			continue; 
+		}
+		n1 = n2+1;
+		std::vector<std::string> tok;
+		n2 = auth.find('|',n1);
+		
+		while(n2 != std::string::npos){
+			tok.push_back(auth.substr(n1,n2-n1));
+			n1 = n2+1;
+			n2 = auth.find('|',n1);
+		}
+		for(std::string s: tok)
+			std::cout << s << std::endl;
+		if(auth.size() >= 2 && userlist[tok.at(0)].first == tok.at(1)){
+			std::string s;
+			if(userlist[tok.at(0)].second == 1)
+				s  = "ALREADY_AUTHENTICATED";
+			else {
+				s  = "AUTHENTICATED";
+				userlist[tok.at(0)].second = 1;
+			}
+			if (send(new_fd, s.c_str(), s.length(), 0) == -1)
+				perror("send");	
+		} else {
+			std::string s  = "INVALID_CREDENTIALS";
+			if (send(new_fd, s.c_str(), s.length(), 0) == -1)
+				perror("send");	
+		}
+		break;
 	}
 	close(new_fd);  
 	return 0;
