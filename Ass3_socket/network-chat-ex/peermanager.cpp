@@ -13,25 +13,6 @@ PeerManager::PeerManager(Client *client)
     qDebug() << "Server is alreay listening";
     this->client = client;
     this->username = client->getMyShortNick().toUtf8();
-    /* Getting our username from the environment variables 
-    QStringList envVariables;
-    envVariables << "USERNAME.*" << "USER.*" << "USERDOMAIN.*"
-                 << "HOSTNAME.*" << "DOMAINNAME.*";
-
-    QStringList environment = QProcess::systemEnvironment();
-    foreach (QString string, envVariables) {
-        int index = environment.indexOf(QRegExp(string));
-        if (index != -1) {
-            QStringList stringList = environment.at(index).split('=');
-            if (stringList.size() == 2) {
-                username = stringList.at(1).toUtf8();
-                break;
-            }
-        }
-    }
-
-    if (username.isEmpty())
-        username = "unknown";
 
     /* We obtain all the address we can broadcast thorugh in UDP */
     updateAddresses();
