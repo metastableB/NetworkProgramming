@@ -6,29 +6,9 @@
 #include <QString>
 #include <map>
 #include <QModelIndex>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-
-#include <string>
-#include <iostream>
-#include <queue>
-
-#define STDOUT 1
-#define STDIN 0
-
-#define BACKLOG 10	 // how many pending connections queue will hold
-#define MAXDATASIZE 256
+#include "client.h"
+#include "server.h"
+#include "authentication.h"
 
 namespace Ui {
 class ChatWindow;
@@ -42,15 +22,25 @@ public:
     std::map<QString,std::pair<QString,QString> > friends;
     explicit ChatWindow(QWidget *parent = 0);
     ~ChatWindow();
-    char* bindport;
-    void* server();
+    Authentication authServ;
+    Server* server;
+    Client* client;
+
 private:
     Ui::ChatWindow *ui;
     void createFriendsList(QString l);
-    void client();
+    void authenticationHelper();
+    void chatInit();
+    QString myNickName;
+    bool isLoggedIn;
 private slots:
     bool getLineEditMessage();
     bool friendSelected(QModelIndex);
+    void authenticationMessage(QString msg);
+    void handleMessage(QString s);
+
+signals:
+   void sendMessage(QString);
 };
 
 #endif // CHATWINDOW_H

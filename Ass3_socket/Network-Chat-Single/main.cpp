@@ -7,6 +7,5 @@ int main(int argc, char *argv[])
     ChatWindow w;
     w.show();
     a.exec();
-    //w.server();
     return 0;
 }
