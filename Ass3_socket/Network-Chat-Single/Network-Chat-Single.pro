@@ -16,11 +16,17 @@ SOURCES += main.cpp\
         chatwindow.cpp\
         server.cpp \
     client.cpp \
-    authentication.cpp
+    authentication.cpp \
+    logindialog.cpp \
+    addfrienddialog.cpp
 
 HEADERS  += chatwindow.h\
             server.h\
     client.h \
-    authentication.h
+    authentication.h \
+    logindialog.h \
+    addfrienddialog.h
 
-FORMS    += chatwindow.ui
+FORMS    += chatwindow.ui \
+    logindialog.ui \
+    addfrienddialog.ui

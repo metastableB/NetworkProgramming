@@ -21,7 +21,7 @@
 
 #define STDOUT 1
 #define STDIN 0
-#define PORT "3500"  // the port users will be connecting to
+#define PORT "3501"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 #define MAXDATASIZE 256
@@ -110,11 +110,24 @@ int main(void) {
 
 	char buf[MAXDATASIZE];
 	sin_size = sizeof their_addr;
-	new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-	if (new_fd == -1) {
-		perror("accept");
-		exit(1);
-	}
+
+	while (1) {
+		new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+		if (new_fd == -1) {
+			perror("accept");
+			exit(1);
+		}
+
+		int pid = fork();
+   	    if (pid < 0)
+     		perror("ERROR on fork");
+        if (pid == 0) {
+        	close(sockfd);
+     		break;
+   		}
+   		else
+     		close(new_fd);
+ 	} 
 
 	inet_ntop(their_addr.ss_family,
 		get_in_addr((struct sockaddr *)&their_addr),
@@ -147,10 +160,8 @@ int main(void) {
 void *rthread_func(void *p_){
 	int sockfd = ((struct rthread_args*)p_)->sockfd;
 	while(1){
-		std::string username = "metastableB: ";
 		std::string s;
 		getline(std::cin,s);
-		s = username + s;
 		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
 			perror("send");	
 	}

@@ -6,28 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>434</width>
-    <height>314</height>
+    <width>442</width>
+    <height>371</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ChatWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>11</x>
-      <y>11</y>
-      <width>393</width>
-      <height>227</height>
+      <x>20</x>
+      <y>10</y>
+      <width>399</width>
+      <height>291</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QTextEdit" name="messageEcho">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>260</height>
+          </size>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -43,51 +49,67 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QListWidget" name="friendsList">
+         <property name="minimumSize">
+          <size>
+           <width>131</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>109</width>
+           <width>131</width>
            <height>16777215</height>
           </size>
          </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>13</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="SendButton">
-           <property name="text">
-            <string>Send</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>18</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>13</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="SendButton">
+             <property name="text">
+              <string>Send</string>
+             </property>
+             <property name="autoDefault">
+              <bool>true</bool>
+             </property>
+             <property name="default">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>18</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -96,45 +118,51 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QMenuBar" name="menuBar">
+  <widget class="QMenuBar" name="optionsMenuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>434</width>
+     <width>442</width>
      <height>20</height>
     </rect>
    </property>
+   <property name="contextMenuPolicy">
+    <enum>Qt::ActionsContextMenu</enum>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="defaultUp">
+    <bool>true</bool>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionAdd_Friend"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
+  <action name="actionAdd_Friend">
+   <property name="text">
+    <string>Add Friend</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
-  <connection>
-   <sender>messageEdit</sender>
-   <signal>returnPressed()</signal>
-   <receiver>SendButton</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>207</x>
-     <y>261</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>376</x>
-     <y>271</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>SendButton</sender>
    <signal>clicked()</signal>
@@ -164,6 +192,22 @@
     <hint type="destinationlabel">
      <x>411</x>
      <y>92</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>messageEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>SendButton</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>207</x>
+     <y>261</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>376</x>
+     <y>271</y>
     </hint>
    </hints>
   </connection>

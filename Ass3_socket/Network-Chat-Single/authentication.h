@@ -9,8 +9,8 @@
 #include <QTimer>
 #include <QAbstractSocket>
 
-#define AUTH_SERV "localhost"
-#define AUTH_PORT 3500
+#define AUTH_SERV "127.0.0.1"
+#define AUTH_PORT 3501
 
 class Authentication : public QTcpSocket
 {
@@ -20,7 +20,14 @@ public:
 
     Authentication(QObject *parent = 0);
     void setCredentials(QString uname, QString pwd);
-    void authenticate();
+    void registerUser(QString,QString);
+    void connect();
+    /* Protocol Function */
+    void p_authenticate();
+    void p_register();
+    void p_addFriend(QString);
+    void p_postMyIp(QString ip, quint16);
+    void p_getFriendList();
 signals:
     void authenticationMessage(QString msg);
 private:
@@ -29,7 +36,7 @@ private:
     bool isCredentialsSet;
 private slots:
     void readyRead();
-    void readyWrite();
+    void protoWrite(QString);
     void disconnected();
     void connected();
     void connectionError(QAbstractSocket::SocketError);
