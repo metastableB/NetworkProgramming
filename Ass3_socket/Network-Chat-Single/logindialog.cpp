@@ -63,7 +63,7 @@ void LoginDialog::signupButtonPressed(){
 
 void LoginDialog::responseHandler(QString msg){
     qDebug() << "Received msg here" << msg;
-    qDebug() << msg.compare("AUTHENTICATED");
+    qDebug() << msg.compare("AUTHENTICATE_SUCCESS");
 
     if(msg.compare("DISCONNECTED") == 0)
             messageBoxEcho("Error",msg);
@@ -71,13 +71,27 @@ void LoginDialog::responseHandler(QString msg){
     else if(msg.compare("CONNECTIONERROR") == 0)
         messageBoxEcho("Error",msg);
 
-    else if(msg.compare("AUTHENTICATED") == 0){
+
+    else if(msg.compare("AUTHENTICATE_SUCCESS") == 0){
         qDebug() << "Emmiting logedin";
         //bool oldState = auth->blockSignals(true);
         //auth->close();
         //auth->blockSignals(oldState);
         emit loggedin();
+    }else if(msg.contains("AUTHENTICATE_FAILURE")){
+        QStringList l = msg.split("|");
+        messageBoxEcho("Error",l[1]);
     }
+
+
+    else if(msg.compare("REGISTER_SUCCESS") == 0){
+        emit loggedin();
+    } else if(msg.contains("REGISTER_FAILURE")){
+        QStringList l = msg.split('|');
+        messageBoxEcho("Error",l[1]);
+    }
+
+
     else
        messageBoxEcho("Error",msg);
 }

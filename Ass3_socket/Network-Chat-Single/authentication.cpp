@@ -12,8 +12,8 @@
  * REGISTER|username|password
  * >> REGISTER_SUCCESS or REGISTER_FAILURE
  *
- * ADDFRIEND|username|friendname
- * >> ADDFREIND_SUCCESS | ADDFRIEND_FAILURE
+ * ADD_FRIEND|friendname
+ * >> ADD_FREIND_SUCCESS | ADDFRIEND_FAILURE
  *
  * GET_FRIEND_LIST|username
  * >> FRIENDLIST|[username|ip|port]*
@@ -75,6 +75,10 @@ void Authentication::protoWrite(QString data){
     write(data.toLatin1().data(),data.length());
 }
 
+QString Authentication::getUsername(){
+    return username;
+}
+
 /*
  * Protocol functions
  */
@@ -82,27 +86,27 @@ void Authentication::protoWrite(QString data){
 
 void Authentication::p_authenticate(){
     qDebug() << "Authenticating" << AUTH_SERV << ":" << AUTH_PORT;
-    protoWrite("AUTHENTICATE|"+username+"|"+password+"\n");
+    protoWrite("AUTHENTICATE|"+username+"|"+password);
 }
 
 void Authentication::p_register(){
     qDebug() << "Registering user";
-    protoWrite("REGISTER|"+username+"|"+password+"\n");
+    protoWrite("REGISTER|"+username+"|"+password);
 }
 
 void Authentication::p_addFriend(QString uname){
     qDebug() << "Add Friend" << uname;
-    protoWrite("ADDFRIEND|"+uname+"\n");
+    protoWrite("ADD_FRIEND|"+uname);
 }
 
 void Authentication::p_postMyIp(QString ip, quint16 port){
-    QString data("POST_MY_IP|"+username + '|' + ip +'|' + QString(QString::number(port))+"\n");
+    QString data("POST_MY_IP|"+username + '|' + ip +'|' + QString(QString::number(port)));
     protoWrite(data);
 }
 
 void Authentication::p_getFriendList(){
     qDebug() << "Hello?";
-    QString data("GET_FRIEND_LIST|"+username+"\n");
+    QString data("GET_FRIEND_LIST|"+username);
     protoWrite(data);
 }
 

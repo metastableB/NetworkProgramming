@@ -2,11 +2,13 @@
 
 Client::Client()
 {
-
+    isConnected = false;
+    socket = NULL;
 }
 
 void Client::newConnection(QTcpSocket *t){
     socket = t;
+    isConnected = true;
     /* stop qtcp srver listen */
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
             this, SLOT(connectionError(QAbstractSocket::SocketError)));
@@ -17,6 +19,9 @@ void Client::newConnection(QTcpSocket *t){
 
 void Client::disconnected()
 {
+    qDebug() << "Disconnected\n";
+    isConnected = false;
+    socket = NULL;
     emit clientMessage("Disconnected");
 }
 
@@ -49,5 +54,15 @@ void Client::connectTo(QString ip, QString port){
 }
 
 void Client::connected(){
+    isConnected = true;
     emit clientMessage("<font color=green>Connected</font>");
+}
+
+bool Client::getIsConnected(){
+    return isConnected;
+}
+
+void Client::close(){
+    delete socket;
+    socket = NULL;
 }

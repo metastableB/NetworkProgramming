@@ -22,6 +22,7 @@ public:
     void setCredentials(QString uname, QString pwd);
     void registerUser(QString,QString);
     void connect();
+    QString getUsername();
     /* Protocol Function */
     void p_authenticate();
     void p_register();

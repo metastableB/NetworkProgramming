@@ -14,8 +14,9 @@ ChatWindow::ChatWindow(Authentication* auth,QWidget *parent) :
 void ChatWindow::chatInit(){
     handleMessage("<font color=green>Successfully authenticated</font>");
     handleMessage("<font color=blue>Initializing Chat</font>");
-    server = new Server(this);
     client = new Client();
+    server = new Server(client,this);
+    myNickName = authServ->getUsername();
     QObject::connect(authServ, SIGNAL(authenticationMessage(QString)),
                                        this, SLOT(authenticationMessage(QString)));
     QObject::connect(this->server, SIGNAL(newConnection(QTcpSocket*)),
@@ -29,10 +30,9 @@ void ChatWindow::chatInit(){
     QObject::connect(this->ui->menuFile,SIGNAL(triggered(QAction*)),
                      this,SLOT(slotOptionsMenu(QAction*)),Qt::UniqueConnection);
 
-    handleMessage("<font color=green>Successfully Initialized</font>");
+    handleMessage("<font color=blue>Successfully Initialized</font>");
     handleMessage("<font color=blue>Registering with AuthServer</font>");
     authServ->p_postMyIp(server->serverAddress().toString(),server->serverPort());
-//    handleMessage("<font color=green>Retrival susccessful</font>");
 
     //authServ->getFriendList(server->serverAddress().toString(),server->serverPort());
     /* Should we pause the connection ?
@@ -66,38 +66,28 @@ bool ChatWindow::getLineEditMessage(){
     if(s.length() == 0) return true;
     qDebug() << "Got " << s;
     if (s.startsWith(QChar('/'))) {
-          QStringList l = s.split(QChar(' '));
-            if(l[0].compare("/login") == 0 && !isLoggedIn){
-                if(l.size() != 3) {
-                    QString msg = "<font color=red>Invalid Usage </font>";
-                    this->ui->messageEcho->append(msg);
-                    this->ui->messageEdit->clear();
-                }
-                myNickName = l.at(1);
-                this->ui->messageEcho->append(tr("Authenticating: %1")
-                    .arg(myNickName));
+        QStringList l = s.split(QChar(' '));
+        QString msg = "<font color=red>Invalid Usage </font>";
+        this->ui->messageEcho->append(msg);
+        this->ui->messageEdit->clear();
 
-                if(!isLoggedIn){
-                   authServ->setCredentials(l.at(1),l.at(2));
-                   authServ->p_authenticate();
-                }
-            } else{
-                QString msg = "<font color=red>Invalid Usage </font>";
-                this->ui->messageEcho->append(msg);
-                this->ui->messageEdit->clear();
-            }
-
-    }else if(isLoggedIn){
+    }else if( client->getIsConnected()){
+        qDebug() << "Seemes like we are connected";
         QString uname = "<font color=red>" +myNickName+": "+ s + "</font>";
         this->ui->messageEcho->append(uname);
         this->ui->messageEdit->clear();
         emit sendMessage(myNickName + ":" + s);
+    }else {
+        QString uname = "<font color=orange>You are not connected</font>";
+        this->ui->messageEcho->append(uname);
+        this->ui->messageEdit->clear();
     }
     return true;
 }
 
 void ChatWindow::createFriendsList(QString l){
     /* We get a username|IP|port */
+    this->ui->friendsList->clear();
     QStringList friendsList = l.split('|');
     for(int i = 0; i < friendsList.length(); i+=3){
         qDebug() << i ;
@@ -110,9 +100,16 @@ void ChatWindow::createFriendsList(QString l){
 
 bool ChatWindow::friendSelected(QModelIndex){
     QString s = this->ui->friendsList->currentItem()->text();
-    this->ui->messageEcho->append("<font color=blue>Connecting to "+
+
+    if(client->getIsConnected())
+        this->ui->messageEcho->append("<font colog = organe>You are already connected. Disconnect first</font>");
+    else if(friends[s].first == "" || friends[s].second == "")
+        this->ui->messageEcho->append("<font color=orange>"+s +" is not logged in</font>");
+    else {
+        this->ui->messageEcho->append("<font color=blue>Connecting to "+
                                   friends[s].first+":"+friends[s].second + "</font>");
-    client->connectTo(friends[s].first, friends[s].second);
+        client->connectTo(friends[s].first, friends[s].second);
+    }
     return true;
 }
 
@@ -135,6 +132,7 @@ void ChatWindow::authenticationMessage(QString msg){
         QString l = msg.mid(QString("FRIENDLIST|").length());
         qDebug() << "Creating list with " << l;
         createFriendsList(l);
+        handleMessage("<font color=blue>Friend List retrived</font>");
     }
 
     else if(msg.compare("POST_MY_IP_SUCCESS") == 0){
@@ -162,7 +160,15 @@ void ChatWindow::slotOptionsMenu(QAction* a){
         QObject::connect(a,SIGNAL(okClicked(QString)),
                          this,SLOT(addFriendHandler(QString)));
         a->show();
-    } else if(a->text() == "Exit")
+    }else if(a->text() == "Refresh Friend List"){
+        authServ->p_getFriendList();
+    }else if(a->text() == "Leave Chat"){
+       if(client->getIsConnected()){
+           qDebug() << "We should be disconnected by now\n";
+           client->close();
+       }
+
+    }else if(a->text() == "Exit")
         exit(0);
 }
 

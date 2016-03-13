@@ -145,7 +145,10 @@
      <string>Options</string>
     </property>
     <addaction name="actionAdd_Friend"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionLeave_Chat"/>
+    <addaction name="actionRefresh_Friend_List"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit_"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -159,6 +162,21 @@
     <string>Exit</string>
    </property>
   </action>
+  <action name="actionRefresh_Friend_List">
+   <property name="text">
+    <string>Refresh Friend List</string>
+   </property>
+  </action>
+  <action name="actionExit_">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionLeave_Chat">
+   <property name="text">
+    <string>Leave Chat</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
@@ -170,8 +188,8 @@
    <slot>getLineEditMessage()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>355</x>
-     <y>257</y>
+     <x>390</x>
+     <y>316</y>
     </hint>
     <hint type="destinationlabel">
      <x>339</x>
@@ -202,12 +220,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>207</x>
-     <y>261</y>
+     <x>209</x>
+     <y>318</y>
     </hint>
     <hint type="destinationlabel">
-     <x>376</x>
-     <y>271</y>
+     <x>390</x>
+     <y>316</y>
     </hint>
    </hints>
   </connection>

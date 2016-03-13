@@ -3,13 +3,15 @@
 
 #include <QTcpServer>
 #include <QTcpSocket>
+#include "client.h"
 
 class Server : public QTcpServer
 {
     Q_OBJECT
 
 public:
-    Server(QObject *parent = 0);
+    Server(Client* c,QObject *parent = 0);
+    Client* client;
 
 signals:
     void newConnection(QTcpSocket *connection);

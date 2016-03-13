@@ -6,10 +6,14 @@
 class Client : public QObject
 {
     Q_OBJECT
+private:
+    bool isConnected;
 public:
+    bool getIsConnected();
     Client();
     QTcpSocket* socket;
     void connectTo(QString, QString);
+    void close();
 private slots:
     void disconnected();
     void connectionError(QAbstractSocket::SocketError /* socketError */);
