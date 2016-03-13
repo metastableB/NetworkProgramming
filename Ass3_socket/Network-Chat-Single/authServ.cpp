@@ -284,7 +284,13 @@ int runUpdate(std::string &s, struct sql_conn* conn_, std::string &err) {
  * POST_MY_IP|username|ip|port
  * >> POST_MY_IP_SUCCESS | POST_MY_IP_FAILURE
  *
+ * JOIN_GROUP|myusername|group_name
+ * >> JOIN_GROUP|group_name|ip|port|[LIST OF GROUP MEMBERS] or JOIN_GROUP_FAILURE
+ *
+ * CREATE_GROUP|groupname|ip|port
+ * >> CREATE_GROUP_SUCCESS| or CREATE_GROUP_FAILURE
  */
+
 std::string make_response(std::string req){
 	std::vector<std::string> token;
 	tokenize(req,token);
@@ -393,6 +399,76 @@ std::string make_response(std::string req){
 		return "POST_MY_IP_SUCCESS";
 	} 
 
+	if(token[0] == "CREATE_GROUP"){
+		//CREATE_GROUP|groupname|ip|port
+		if(token.size() < 4){
+			delete t;
+			return "CREATE_GROUP_FAILURE|Too few arguments";
+		}
+		// group name , ip, port
+		std::string e,s = "INSERT INTO groups VALUES(\""+token[1]+"\",\""+USERNAME+"\",\""+token[2]+"\",\""+token[3]+"\")";
+		int res = runUpdate(s,t,e);
+		if(res == -1){
+			delete t;
+			return "CREATE_GROUP_FAILURE" + e;
+		}
+		else {
+			delete t;
+			t = new sql_conn();
+			// group name , username
+			s = "INSERT INTO groupMembers VALUES(\""+token[1]+"\",\""+USERNAME+"\")";
+			res = runUpdate(s,t,e);
+			delete t;
+			if(res != -1)
+				return "CREATE_GROUP_SUCCESS|"+token[1];
+			else 
+				return "CREATE_GROUP_FAILURE" + e;
+		}
+	}
+
+	if(token[0] == "JOIN_GROUP"){
+		/* JOIN_GROUP|myusername|group_name
+ 		 * >> JOIN_GROUP|group_name|ip|port|[LIST OF GROUP MEMBERS]*/
+		std::string e,s,resp;
+		delete t;
+		t = new sql_conn();
+		s = "SELECT admin, ip, port FROM groups WHERE groupname = \""+token[2]+"\";";
+		//std::cout << s;
+		sql::ResultSet *res;
+		res = runStatement(s,t,e);
+		if(!res->next())
+			return "JOIN_GROUP_FAILURE" + e;
+		else
+			resp = "JOIN_GROUP|"+token[2]+"|"+res->getString(2)+"|"+res->getString(3);
+
+		s = "SELECT loggedIn from auth where username=\""+res->getString(1) + "\"";
+		delete res;
+		res = runStatement(s,t,e);
+		//std::cout << s ;
+		if(!res->next() || res->getString(1) != "1")
+			return "JOIN_GROUP_FAILURE|Group is not active or does not exist";
+
+		// Add yourself to group;
+		delete t;
+		t = new sql_conn();
+		// group name , username
+		s = "INSERT INTO groupMembers VALUES(\""+token[2]+"\",\""+USERNAME+"\")";
+		runUpdate(s,t,e);
+		delete t;
+		// construct friend list
+		s = "SELECT username,ip,port FROM auth where username in (select username from groupMembers";
+		s += " WHERE groupname = \"" + token[2] + "\")";
+		delete res;
+		t = new sql_conn();
+		res = runStatement(s,t,e);
+		while(res->next()){
+			if(res->getString(1) == token[1]) continue;
+			resp += "|" + res->getString(1) + "|" + res->getString(2) + "|" + res->getString(3); 
+		}
+		delete t;
+		delete res;
+		return resp;
+	}
 	std::cout << token[0] << std::endl	;
 	return "";
 	delete t;
@@ -403,6 +479,15 @@ void logOut(){
 	struct sql_conn *t = new sql_conn();
 	std::string e,s = "UPDATE auth SET loggedIn = 0,ip=\"\",port=\"\" WHERE username =\""+USERNAME+"\"";
 	int res = runUpdate(s,t,e);
+	delete t;
+	t = new sql_conn();
+	s = "DELETE from groupMembers WHERE groupname IN (SELECT groupname FROM ";
+	s += " groups WHERE admin =\"" + USERNAME + "\")";
+	res = runUpdate(s,t,e);
+	delete t;
+	t = new sql_conn();
+	s = "DELETE from groups WHERE admin =\"" + USERNAME + "\"";
+	res = runUpdate(s,t,e);
 	delete t;
 }
 

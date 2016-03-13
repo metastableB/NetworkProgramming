@@ -18,15 +18,18 @@ SOURCES += main.cpp\
     client.cpp \
     authentication.cpp \
     logindialog.cpp \
-    addfrienddialog.cpp
+    addfrienddialog.cpp \
+    joingroupdialog.cpp
 
 HEADERS  += chatwindow.h\
             server.h\
     client.h \
     authentication.h \
     logindialog.h \
-    addfrienddialog.h
+    addfrienddialog.h \
+    joingroupdialog.h
 
 FORMS    += chatwindow.ui \
     logindialog.ui \
-    addfrienddialog.ui
+    addfrienddialog.ui \
+    joingroupdialog.ui

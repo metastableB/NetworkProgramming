@@ -12,6 +12,7 @@
 #include "server.h"
 #include "authentication.h"
 #include "addfrienddialog.h"
+#include "joingroupdialog.h"
 
 namespace Ui {
 class ChatWindow;

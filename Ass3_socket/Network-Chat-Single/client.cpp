@@ -4,6 +4,7 @@ Client::Client()
 {
     isConnected = false;
     socket = NULL;
+    allowGroupChat = false;
 }
 
 void Client::newConnection(QTcpSocket *t){
@@ -20,7 +21,8 @@ void Client::newConnection(QTcpSocket *t){
 void Client::disconnected()
 {
     qDebug() << "Disconnected\n";
-    isConnected = false;
+    if(!allowGroupChat)
+        isConnected = false;
     socket = NULL;
     emit clientMessage("Disconnected");
 }
@@ -62,7 +64,43 @@ bool Client::getIsConnected(){
     return isConnected;
 }
 
+
+bool Client::getGroupChatAllowed(){
+    return allowGroupChat;
+}
+
 void Client::close(){
     delete socket;
     socket = NULL;
+}
+
+/* Group Chat */
+void Client::initGroupChat(Authentication* t,QString s, quint16 su){
+    auth = t;
+    s_ip = s;
+    s_port = su;
+}
+
+void Client::joinGroup(QString grp){
+    if(isConnected){
+        emit clientMessage("Something is wrong in the code in group chat");
+        return;
+    }
+    auth->p_joinGroup(grp);
+
+}
+
+void Client::createGroup(QString grp){
+    if(isConnected){
+        emit clientMessage("Something is wrong in the code in group chat");
+        return;
+    }
+    allowGroupChat = true;
+    qDebug() << "Allow group chat is true";
+    auth->p_createGroup(grp,s_ip,s_port);
+}
+
+void Client::joinGroupChat(QString ip , QString port){
+    connectTo(ip,port);
+    qDebug() << "Here is somethign";
 }

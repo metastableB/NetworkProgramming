@@ -146,6 +146,7 @@
     </property>
     <addaction name="actionAdd_Friend"/>
     <addaction name="actionLeave_Chat"/>
+    <addaction name="actionJoin_Group_Chat"/>
     <addaction name="actionRefresh_Friend_List"/>
     <addaction name="separator"/>
     <addaction name="actionExit_"/>
@@ -175,6 +176,11 @@
   <action name="actionLeave_Chat">
    <property name="text">
     <string>Leave Chat</string>
+   </property>
+  </action>
+  <action name="actionJoin_Group_Chat">
+   <property name="text">
+    <string>Join Group Chat</string>
    </property>
   </action>
  </widget>

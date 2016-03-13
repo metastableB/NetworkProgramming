@@ -1,5 +1,10 @@
 #include "authentication.h"
 
+/* TODO : fix the connected object vs allowed group chat object.
+ * only the server needs to override it
+ * clients need not
+ */
+
 /* The connection object is only initialized
  * IT does not have any controll structure moves.
  * Make sure all communicatin to the authentication server goes through here.
@@ -21,6 +26,11 @@
  * POST_MY_IP|username|ip|port
  * >> POST_MY_IP_SUCCESS | POST_MY_IP_FAILURE
  *
+ * JOIN_GROUP|my_username|group_name
+ * >> JOIN_GROUP|group_name|ip|port|[LIST OF GROUP MEMBERS]
+ *
+ * CREATE_GROUP|groupname|ip|port
+ * >> CREATE_GROUP_SUCCESS|groupname or CREATE_GROUP_FAIURE
  */
 Authentication::Authentication(QObject *parent)
     : QTcpSocket(parent)
@@ -105,9 +115,16 @@ void Authentication::p_postMyIp(QString ip, quint16 port){
 }
 
 void Authentication::p_getFriendList(){
-    qDebug() << "Hello?";
     QString data("GET_FRIEND_LIST|"+username);
     protoWrite(data);
 }
 
+void Authentication::p_joinGroup(QString grp){
+    QString data("JOIN_GROUP|"+username+"|"+grp);
+    protoWrite(data);
+}
 
+void Authentication::p_createGroup(QString grp, QString ip, quint16 port){
+    QString data("CREATE_GROUP|"+grp+"|"+ip+"|"+QString(QString::number(port)));
+    protoWrite(data);
+}

@@ -29,6 +29,8 @@ public:
     void p_addFriend(QString);
     void p_postMyIp(QString ip, quint16);
     void p_getFriendList();
+    void p_joinGroup(QString);
+    void p_createGroup(QString,QString,quint16);
 signals:
     void authenticationMessage(QString msg);
 private:

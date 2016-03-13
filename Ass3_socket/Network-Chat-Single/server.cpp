@@ -16,7 +16,7 @@ void Server::incomingConnection(qintptr socketDescriptor)
     QTcpSocket *t = new QTcpSocket(this);
     t->setSocketDescriptor(socketDescriptor);
     qDebug() << "We have a new connection" << t->peerAddress();
-    if(client->getIsConnected() ){
+    if(client->getIsConnected() && !client->getGroupChatAllowed()){
         t->close();
         delete t;
     } else

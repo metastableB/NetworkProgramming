@@ -29,7 +29,6 @@ void ChatWindow::chatInit(){
                      this,SLOT(handleMessage(QString)));
     QObject::connect(this->ui->menuFile,SIGNAL(triggered(QAction*)),
                      this,SLOT(slotOptionsMenu(QAction*)),Qt::UniqueConnection);
-
     handleMessage("<font color=blue>Successfully Initialized</font>");
     handleMessage("<font color=blue>Registering with AuthServer</font>");
     authServ->p_postMyIp(server->serverAddress().toString(),server->serverPort());
@@ -145,7 +144,32 @@ void ChatWindow::authenticationMessage(QString msg){
         postMyIpSuccess = false;
         handleMessage("<font color=red>IP registration failed</font>");
         handleMessage("<font color=red>Exiting..</font>");
-    } else this->ui->messageEcho->append("<font color=green>"+msg+"</font>");
+    }
+
+    else if(msg.contains("CREATE_GROUP_SUCCESS")){
+        handleMessage("<font color=green>Group Creation Successful</font>");
+        QStringList ls = msg.split('|');
+        authServ->p_joinGroup(ls[1]);
+    }
+    else if(msg.contains("CREATE_GROUP_FAILURE")){
+        handleMessage("<font color=red>"+msg+"</font>");
+    } else if(msg.contains("JOIN_GROUP") && !msg.contains("JOIN_GROUP_FAILURE")){
+        // JOIN_GROUP|group_name|ip|port|[FriendLIST]
+        QStringList ls = msg.split('|');
+        QString g, i, p,l;
+        g = ls[1];
+        i = ls[2];
+        p = ls[3];
+        for(int i = 4; i < ls.length(); i++)
+            l = l + ls[i] + "|";
+        qDebug() << l;
+        createFriendsList(l);
+        if(p != QString(QString::number(server->serverPort())))
+            client->joinGroupChat(i,p);
+        //else
+            //client->hostPeers();
+    }
+    else this->ui->messageEcho->append("<font color=green>"+msg+"</font>");
 }
 
 void ChatWindow::handleMessage(QString s){
@@ -167,7 +191,16 @@ void ChatWindow::slotOptionsMenu(QAction* a){
            qDebug() << "We should be disconnected by now\n";
            client->close();
        }
-
+    }else if(a->text() == "Join Group Chat"){
+           if(client->getIsConnected())
+               handleMessage("<font color=blue>Cannot start group chat while connected</font>");
+           else{
+               client->initGroupChat(authServ,server->serverAddress().toString(),server->serverPort());
+               joinGroupDialog *j = new joinGroupDialog();
+               QObject::connect(j,SIGNAL(joinGroup(QString)),client,SLOT(joinGroup(QString)));
+               QObject::connect(j,SIGNAL(createGroup(QString)),client,SLOT(createGroup(QString)));
+               j->show();
+           }
     }else if(a->text() == "Exit")
         exit(0);
 }
