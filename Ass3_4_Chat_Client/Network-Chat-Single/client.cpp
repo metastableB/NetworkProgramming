@@ -16,15 +16,23 @@ void Client::newConnection(QTcpSocket *t){
     connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
     connect(socket, SIGNAL(connected()), this, SLOT(connected()));
     connect(socket, SIGNAL(readyRead()), this, SLOT(readReady()));
+    if(getGroupChatAllowed())
+        peers.insert(socket->peerPort(),socket);
 }
 
 void Client::disconnected()
 {
     qDebug() << "Disconnected\n";
-    if(!allowGroupChat)
+    if(!allowGroupChat){
         isConnected = false;
-    socket = NULL;
-    emit clientMessage("Disconnected");
+        socket = NULL;
+        emit clientMessage("Disconnected");
+    }
+    else {
+        QTcpSocket* t = qobject_cast<QTcpSocket*>(sender());
+        peers.remove(t->peerPort());
+        emit clientMessage("Disconnected " + t->peerAddress().toString() + ":" + QString(QString::number(t->peerPort())));
+    }
 }
 
 void Client::connectionError(QAbstractSocket::SocketError /* socketError */)
@@ -35,7 +43,13 @@ void Client::connectionError(QAbstractSocket::SocketError /* socketError */)
 void Client:: readReady(){
     QByteArray data;
     data.resize(256);
-    data = socket->readAll();
+    if(!allowGroupChat)
+        data = socket->readAll();
+    else {
+        QTcpSocket* t = qobject_cast<QTcpSocket*>(sender());
+        data = t->readAll();
+        sendMessage(data);
+    }
     qDebug() << "Received " << data;
     QString msg(data);
     msg = "<font color=purple>" +msg+"</font>";
@@ -45,7 +59,13 @@ void Client:: readReady(){
 void Client::sendMessage(QString msg){
     qDebug() << "Sending to socket";
     QString data(msg);
-    socket->write(data.toLatin1().data(),data.length());
+    if(!allowGroupChat)
+        socket->write(data.toLatin1().data(),data.length());
+    else{
+        QList <QTcpSocket*> p = peers.values();
+        foreach (QTcpSocket *t, p)
+                t->write(data.toLatin1().data(),data.length());
+    }
 }
 
 void Client::connectTo(QString ip, QString port){

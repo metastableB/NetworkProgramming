@@ -27,7 +27,7 @@
 
 #define STDOUT 1
 #define STDIN 0
-#define PORT "3501"  // the port users will be connecting to
+#define PORT "3500"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 #define MAXDATASIZE 256

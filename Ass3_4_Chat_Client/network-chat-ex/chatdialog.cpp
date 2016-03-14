@@ -36,13 +36,14 @@ void ChatDialog::clientInit(){
 void ChatDialog::authenticationMessage(QString msg){
     // if teh message is good: we proceede clientInit();
     QColor color = textEdit->textColor();
+    qDebug () << msg;
     if(msg.compare("DISCONNECTED") == 0){
         textEdit->setTextColor(Qt::red);
         textEdit->append("Disconnected from AuthServ");
     } else if(msg.compare("CONNECTIONERROR") == 0){
         textEdit->setTextColor(Qt::red);
         textEdit->append("ERROR: Connection Error");
-    } else if(msg.compare("AUTHENTICATED") == 0){
+    } else if(msg.compare("AUTHENTICATE_SUCCESS") == 0){
         isLoggedIn = true;
         textEdit->setTextColor(Qt::green);
         textEdit->append("Successfully authenticated.\nDisconnecting from AuthServ");

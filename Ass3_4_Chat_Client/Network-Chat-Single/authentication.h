@@ -10,7 +10,7 @@
 #include <QAbstractSocket>
 
 #define AUTH_SERV "127.0.0.1"
-#define AUTH_PORT 3501
+#define AUTH_PORT 3500
 
 class Authentication : public QTcpSocket
 {
