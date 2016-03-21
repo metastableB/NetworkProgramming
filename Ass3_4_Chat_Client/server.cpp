@@ -106,7 +106,7 @@ int main(void) {
 		exit(1);
 	}
 
-	printf("server: waiting for connections...\n");
+	printf("server: waiting for connections[ localhost:%s\n",PORT);
 
 	char buf[MAXDATASIZE];
 	sin_size = sizeof their_addr;
@@ -158,10 +158,14 @@ int main(void) {
 
 
 void *rthread_func(void *p_){
+	std::cout << "h" << std::endl;
 	int sockfd = ((struct rthread_args*)p_)->sockfd;
+	std::cout << "Helo\b";
 	while(1){
+		std::cout << "In thread\n";
 		std::string s;
 		getline(std::cin,s);
+		std::cout << "sending\n";
 		if (send(sockfd, s.c_str(), s.length(), 0) == -1)
 			perror("send");	
 	}
