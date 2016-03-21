@@ -80,7 +80,9 @@ void Chord_Node::update_others(){
 	std::cout << "Updating others\n";
 	node_info p;
 	for(int i = 1; i <= M_M; i++){
-		p = n_find_predecessor(this->key - pow(2,i-1));
+		int key = this->key - pow(2,i-1);
+		if(key < 0) key = POW_M - ((-1*key)%POW_M);
+		p = n_find_predecessor(key);
 		std::string msg = "UPDATE_FINGER_TABLE";
 		msg += "|" + this->ip + "|" + std::to_string(this->port) + "|" + std::to_string(this->key);
 		msg += "|" + std::to_string(i);
@@ -169,7 +171,7 @@ struct node_info Chord_Node::n_find_predecessor(int k){
 		}
 		s = get_finger_1(n.ip,n.port);
 		std::cout << "Finger_1 " << s.key << std::endl;
-		_PAUSE_()
+		//_PAUSE_()
 		if(s.key < 0){
 			printf("n_find_successor error: %s %d\n", n.ip.c_str(), n.port);
 			exit(2);

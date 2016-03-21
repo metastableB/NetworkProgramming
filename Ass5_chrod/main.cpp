@@ -35,6 +35,10 @@ struct rthread_args{
 };
 
 Chord_Node* chord;
+/*
+ * 1,5,4
+ *
+ */
 int main(int argc, char* argv[]){
 	if(argc < 4)
 		return printf("Usage : host_ip host_port key [join_ip join_port]\n");
@@ -53,7 +57,6 @@ int main(int argc, char* argv[]){
 		port = std::stoi(argv[5]);
 		ip = argv[4];
 	}
-	std::cout << "Joining " << ip << ":" << port << std::endl;
 	x.join(ip,port);
 	pthread_join(ser,NULL);
 	//x.test_random_finger();
@@ -297,6 +300,5 @@ void *rthread_func(void *p_){
 			break;
 		}
 	}
-	std::cout << "Loop exited\n";
 	close(sockfd);  
 }
