@@ -15,6 +15,16 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+#define RESET "\033[0m"
+
 #include <string>
 #include <iostream>
 #include <queue>
@@ -43,7 +53,7 @@ int main(int argc, char* argv[]){
 	if(argc < 4)
 		return printf("Usage : host_ip host_port key [join_ip join_port]\n");
 	Chord_Node x(argv[1],std::stoi(argv[2]),std::stoi(argv[3]));
-	printf("We are runnign on %s:%s key = %s\n",argv[1],argv[2],argv[3]);
+	printf(KMAG"We are runnign on %s:%s key = %s\n",argv[1],argv[2],argv[3]);
 	std::string ip = "";
 	int port = -1;
 	/* START NEW THREAD WITH SERVER */
@@ -58,6 +68,35 @@ int main(int argc, char* argv[]){
 		ip = argv[4];
 	}
 	x.join(ip,port);
+	while(1){
+		std::cout << "\n1. Print Fingertable\n";
+		std::cout << "2. Print Data\n";
+		std::cout << "3. Add Data\n";
+		int op;
+		std::cin >> op;
+		switch(op){
+			case 1: 
+				std::cout << KYEL;
+				chord->test_print_debug();
+				std::cout << KMAG;
+				break;
+			case 2: 
+				std::cout << "\n\n";
+				std::cout << KYEL << chord->get_data_csv() <<KMAG;
+				std::cout << "\n";
+				break;
+			case 3: 
+				std::cout << "Enter data: ";
+				std::cin >> op;
+				chord->add_data(op);
+				std::cout << "\n\n";
+				std::cout << KYEL << chord->get_data_csv() <<KMAG;
+				std::cout << "\n";
+				break;
+			default:
+				std::cout << "Unknown\n";
+		}
+	}
 	pthread_join(ser,NULL);
 	//x.test_random_finger();
 	//std::cin >> ip;
@@ -156,8 +195,9 @@ void* sthread_func(void* x_) {
 		inet_ntop(their_addr.ss_family,
 		get_in_addr((struct sockaddr *)&their_addr),
 		s, sizeof s);
-		
+#ifdef __DEBUG__
 		printf("server: got connection from %s\n", s);
+#endif
 		pthread_t rthread;
 		struct rthread_args rarg;
 		rarg.sockfd = new_fd;
@@ -272,12 +312,27 @@ std::string get_response(std::string req){
 	 * >> UPDATE_FINGER_TABLE|ip|port|key|i
 	 * << UPDATED_FINGER_TABLE
 	 */
-	 else if(tokens[0] == "UPDATE_FINGER_TABLE"){
-	 	node_info n(tokens[1],std::stoi(tokens[2]),std::stoi(tokens[3]));
-	 	chord->update_finger_table(n,std::stoi(tokens[4]));
-	 	chord->test_print_debug();
-	 	return "UPDATED_FINGER_TABLE";
-	 }
+	else if(tokens[0] == "UPDATE_FINGER_TABLE"){
+		node_info n(tokens[1],std::stoi(tokens[2]),std::stoi(tokens[3]));
+		chord->update_finger_table(n,std::stoi(tokens[4]));
+		return "UPDATED_FINGER_TABLE";
+	}
+	/*
+	 * >> ADD_DATA|data
+	 * << ADDED_DATA
+	 */
+	else if(tokens[0] == "ADD_DATA"){
+		chord->add_data(std::stoi(tokens[1]));
+		return "ADDED_DATA";
+	}
+	/*
+	 * >> MIGRATE_DATA
+	 * << MIGRATED
+	 */
+	else if(tokens[0] == "MIGRATE_DATA"){
+		chord->migrate_data();
+		return "MIGRATED";
+	}
 }
 
 void *rthread_func(void *p_){
@@ -287,14 +342,16 @@ void *rthread_func(void *p_){
 		int bread;
 		bread = recv(sockfd, buf, MAXDATASIZE - 1, 0);
 		if(bread <= 0){
-			perror("recv");
+			//perror("recv");
 			break;
 		}
 		buf[bread] = '\0';
-		printf("%d >> %s\n",chord->get_key(),buf);	
 		int t;
 		std::string c = get_response(buf);
-		std::cout << "<< " << c << std::endl;
+#ifdef __DEBUG__
+		printf("_>> %s\n",buf);	
+		std::cout << "_<< " << c << std::endl;
+#endif
 		if (send(sockfd, c.c_str(), (c).length(), 0) == -1){
 			perror("send");	
 			break;

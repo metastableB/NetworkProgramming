@@ -23,6 +23,9 @@
  *
  * >> FIND_PREDECESSOR|key
  * << FOUND_PREDECESSOR|ip|port|key
+ *
+ * >> ADD_DATA|data
+ * << ADDED_DATA
  */
 Chord_Node::Chord_Node(std::string ip, int port, int key){
 	set_ip(ip);
@@ -33,31 +36,28 @@ Chord_Node::Chord_Node(std::string ip, int port, int key){
 
 void Chord_Node::join(std::string i, int p){
 	if( i == "" || p < 0){
-		std::cout << "Seems we are alone\n";
 		for(int i = 1; i  <= M_M; i++)
 			finger_table[i] = std::pair<int,node_info>(start(i),node_info(this->ip,
 				this->port,this->key));
 		predecessor = node_info(this->ip,this->port,this->key);
 	} else {
 		init_finger_table(i,p);
-		test_print_debug();
 		update_others();
+		migrate_data(predecessor);
+		migrate_data(finger_table[1].second);
 	}
 	std::cout << "\n\n*****************";
 	std::cout << "\njoin complete \n";
 	std::cout << "*****************\n\n";
-	std::cout << "Printing data\n";
-	test_print_debug();
 }
 
 void Chord_Node::init_finger_table(std::string i, int p) {
-	std::cout << "Initing finger table\n";
+
 	finger_table[1] = std::pair<int,node_info>(start(1),n_find_successor(start(1),i,p));
 	int x;
 	predecessor = n_find_predecessor(finger_table[1].second.key,finger_table[1].second.ip, finger_table[1].second.port);
 	update_predecessor(finger_table[1].second); // Update predecessor entry of successor
 	for(int j = 1; j < M_M; j++){
-		std::cout << "(" << j+1 << ", " << start(j+1) <<")\n";
 		if(belongs_i_e(start(j+1), 
 			this->key,finger_table[j].second.key))
 			finger_table[j+1] = std::pair<int,node_info>(start(j+1),finger_table[j].second);
@@ -65,7 +65,7 @@ void Chord_Node::init_finger_table(std::string i, int p) {
 			finger_table[j+1] = std::pair<int,node_info>(start(j+1),n_find_successor(start(j+1),i ,p));
 		}
 	}
-	std::cout << "Initing done" << std::endl;
+
 }
 /*
  * Update fingertable of all other nodes
@@ -77,7 +77,6 @@ void Chord_Node::update_others(){
 	 * >> UPDATE_FINGER_TABLE|ip|port|key|i
 	 * << UPDATED_FINGER_TABLE
 	 */
-	std::cout << "Updating others\n";
 	node_info p;
 	for(int i = 1; i <= M_M; i++){
 		int key = this->key - pow(2,i-1);
@@ -90,8 +89,10 @@ void Chord_Node::update_others(){
 		if(sockfd < 0) {printf("ERROR UPDATE OTHERS"); exit(2);}
 		std::string r = proto_exec(msg,sockfd);
 		close(sockfd);
-		std::cout << r << std::endl;
-
+#ifdef __DEBUG__
+		std::cout << this->key << " << " << msg << std::endl;
+		std::cout << this->key << " >> " << r << std::endl;
+#endif
 		if(r != "UPDATED_FINGER_TABLE") {
 			std::cout << "Incorrect response to UPDATED_FINGER_TABLE : " << r << std::endl ;
 			exit(2);
@@ -113,20 +114,22 @@ void Chord_Node::update_finger_table(node_info new_f, int i){
 		if(sockfd < 0) {printf("ERROR UPDATE FINGERTABLE"); exit(2);}
 		std::string r = proto_exec(msg,sockfd);
 		close(sockfd);
-		std::cout << r << std::endl;
-
+#ifdef __DEBUG__
+		std::cout << this->key << " << " << msg << std::endl;
+		std::cout << this->key << " >> " << r << std::endl;
+#endif
 		if(r != "UPDATED_FINGER_TABLE") {
 			std::cout << "Incorrect response to UPDATED_FINGER_TABLE : " << r << std::endl ;
 			exit(2);
 		}
-	} else std::cout << new_f.key << " Does not belogn to [" << this->key << ", " << finger_table[i].second.key <<"]\n";
+	}
 }
 
 /* If there is a node with k,
  * this should return k
  */
 struct node_info Chord_Node::n_find_successor(int k){
-	std::cout << "Find successor " << k << std::endl;
+	if(this->key == k) return node_info(this->ip,this->port,this->key);
 	struct node_info n = n_find_predecessor(k);
 	return get_finger_1(n.ip,n.port);
 }
@@ -138,12 +141,15 @@ struct node_info Chord_Node::n_find_successor(int k, std::string i, int p){
  	 */
 	std::string msg = "FIND_SUCCESSOR";
 	msg += "|" + std::to_string(k);
-	std::cout << msg << std::endl;
+
 	int sockfd = get_socket_fd(i,p);
 	if(sockfd < 0) return node_info("",-1,-1);
 	std::string r = proto_exec(msg,sockfd);
 	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
 	std::vector<std::string> tokens;
 	tokenize(r,tokens);
 	if(tokens[0] != "FOUND_SUCCESSOR") {
@@ -160,18 +166,13 @@ struct node_info Chord_Node::n_find_predecessor(int k){
 	s = finger_table[1].second;
 	int ssr = s.key;
 	if(n.key == s.key) return n;
-	std::cout << "Find predecessor " << k << " ssr " << ssr << std::endl;
 	while(!belongs_e_i(k,n.key,ssr)){
-		std::cout << "CPF of " << k << " in " << n.key << " is ";
 		n = n_cpf(k, n.ip, n.port);
-		std::cout << n.key << std::endl;
 		if(n.key < 0){
 			printf("n_cpf error: %s %d\n",n.ip.c_str(),n.port);
 			exit(1);
 		}
 		s = get_finger_1(n.ip,n.port);
-		std::cout << "Finger_1 " << s.key << std::endl;
-		//_PAUSE_()
 		if(s.key < 0){
 			printf("n_find_successor error: %s %d\n", n.ip.c_str(), n.port);
 			exit(2);
@@ -179,7 +180,6 @@ struct node_info Chord_Node::n_find_predecessor(int k){
 		ssr = s.key;
 		if(n.key == s.key) break;
 	}
-	std::cout << "End predecessor\n";
 	return n;
 }
 
@@ -195,7 +195,10 @@ struct node_info Chord_Node::n_find_predecessor(int k, std::string i, int p){
 	if(sockfd < 0) return node_info("",-1,-1);
 	std::string r = proto_exec(msg,sockfd);
 	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
 	std::vector<std::string> tokens;
 	tokenize(r,tokens);
 	if(tokens[0] != "FOUND_PREDECESSOR") {
@@ -219,7 +222,10 @@ struct node_info Chord_Node::n_cpf(int k,std::string i, int p){
 	if(sockfd < 0) return node_info("",-1,-1);
 	std::string r = proto_exec(msg,sockfd);
 	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
 	std::vector<std::string> tokens;
 	tokenize(r,tokens);
 	if(tokens[0] != "POST_CPF") {
@@ -256,7 +262,10 @@ struct node_info Chord_Node::get_finger_1(std::string i, int p){
 	if(sockfd < 0) return node_info("",-1,-1);
 	std::string r = proto_exec(msg,sockfd);
 	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
 	std::vector<std::string> tokens;
 	tokenize(r,tokens);
 	if(tokens[0] != "POST_FINGER_1") {
@@ -287,7 +296,10 @@ void Chord_Node::update_predecessor(node_info& s){
 	}
 	std::string r = proto_exec(msg,sockfd);
 	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
 	if(r != "UPDATED_PREDECESSOR"){
 		std::cout << "PREDECESSOR UPDATE FAILED :" << r<< std::endl;
 		exit(1);
@@ -315,8 +327,11 @@ void Chord_Node::update_successor(node_info& s){
 	}
 
 	std::string r = proto_exec(msg,sockfd);
-	close(sockfd);
-	std::cout << r << std::endl;
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
+
 	if(r != "UPDATED_FINGER_1"){
 		std::cout << "SUCCESSOR UPDATE FAILED " << msg << std::endl;
 		exit(1);
@@ -326,8 +341,64 @@ void Chord_Node::update_successor(node_info& s){
 // MAINTANANCE METHODS 
 //*********************
 
+void Chord_Node::migrate_data(){
+	/* Move all the data of this node around */
+	std::vector<int> data2 = data;
+	data.clear();
+	while(!data2.empty()){
+		int a = data2.back();
+		data2.pop_back();
+		add_data(a);
+	}
+}
+
+void Chord_Node::migrate_data(node_info p){
+	/*
+	 * >> MIGRATE_DATA
+	 * << MIGRATED
+	 */
+	
+	std::string msg = "MIGRATE_DATA";
+	int sockfd = get_socket_fd(p.ip,p.port);
+	if(sockfd < 0) {printf("ERROR MIGRATE_DATA"); exit(2);}
+	std::string r = proto_exec(msg,sockfd);
+#ifdef __DEBUG__
+	std::cout << this->key << " << " << msg << std::endl;
+	std::cout << this->key << " >> " << r << std::endl;
+#endif
+
+	if(r != "MIGRATED") {
+		std::cout << "Incorrect response to MIGRATE_DATA : " << r << std::endl ;
+		exit(2);
+	}
+}
 void Chord_Node::add_data(int d){
-	data.push_back(d);
+	auto n = n_find_successor(d % POW_M);
+	if(n.key == this->key)
+		data.push_back(d);
+	else {
+		/*
+		 * >> ADD_DATA|data
+	 	 * << ADDED_DATA
+	 	 */
+		std::string msg = "ADD_DATA";
+		msg += "|" + std::to_string(d);
+
+		int sockfd = get_socket_fd(n.ip, n.port);
+		if(sockfd < 0) return;
+		std::string r = proto_exec(msg,sockfd);
+		close(sockfd);
+#ifdef __DEBUG__
+		std::cout << this->key << " << " << msg << std::endl;
+		std::cout << this->key << " >> " << r << std::endl;
+#endif
+		std::vector<std::string> tokens;
+		tokenize(r,tokens);
+		if(tokens[0] != "ADDED_DATA") {
+			std::cout << "Incorrect response to ADDED_DATA : " << tokens[0] << std::endl ;
+			return ;
+		}
+	}
 }
 
 void Chord_Node::set_key(int k){
@@ -364,6 +435,7 @@ int Chord_Node::get_key(){
 
 std::string Chord_Node::get_data_csv(){
 	std::string s;
+	std::sort(data.begin(),data.end());
 	for(int i: data)
 		s = s + std::to_string(i) + ", ";
 	return s;
@@ -436,7 +508,6 @@ int Chord_Node::send_msg(std::string msg,int sockfd){
 std::string Chord_Node::receive_msg(int sockfd){
 	int bread;
 	char buf[MAXDATASIZE];
-	std::cout << "Trying to read\n";
 	bread = recv(sockfd, buf, MAXDATASIZE - 1, 0);
 	if(bread <= 0){
 		perror("recv");
@@ -491,7 +562,7 @@ int Chord_Node::get_socket_fd(std::string adr, int prt){
 
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 			s, sizeof s);
-	printf("client: connecting to %s %d\n", s,prt);
+	//printf("client: connecting to %s %d\n", s,prt);
 	freeaddrinfo(servinfo); // all done with this structure
 	return sockfd;
 }
@@ -514,7 +585,7 @@ int Chord_Node::test_random_finger(){
 }
 
 int Chord_Node::test_print_debug(){
-	std::string msg = "\nDEBUG INFO\n";
+	std::string msg = "\nINFO\n";
 	msg += "KEY: " + std::to_string(this->key);
 	msg += "\nPREDECESSOR: " + std::to_string(predecessor.key);
 	msg += "\n" + this->ip;

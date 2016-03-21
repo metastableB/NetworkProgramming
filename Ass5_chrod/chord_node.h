@@ -17,6 +17,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #define M_M 3 // The value m, as defined in the paper
 #define POW_M 8 // 2^_M
@@ -67,6 +68,7 @@ class Chord_Node {
 	void init_finger_table(std::string i, int p);
 	void update_others();
 	void update_finger_table();
+	void migrate_data(node_info);
 public:
 	Chord_Node(std::string,int,int);	
 	std::string get_ip();
@@ -79,6 +81,7 @@ public:
 
 
 	void add_data(int);
+	void migrate_data();
 	/* we manually set the key to prevent hash collisions since we are
 	 * working in a limited key space, namely (0, MOD_M)
 	 */
