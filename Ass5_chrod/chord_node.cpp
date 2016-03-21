@@ -54,7 +54,6 @@ void Chord_Node::join(std::string i, int p){
 void Chord_Node::init_finger_table(std::string i, int p) {
 
 	finger_table[1] = std::pair<int,node_info>(start(1),n_find_successor(start(1),i,p));
-	int x;
 	predecessor = n_find_predecessor(finger_table[1].second.key,finger_table[1].second.ip, finger_table[1].second.port);
 	update_predecessor(finger_table[1].second); // Update predecessor entry of successor
 	for(int j = 1; j < M_M; j++){
@@ -525,8 +524,7 @@ void * Chord_Node::get_in_addr(struct sockaddr *sa){
 }
 
 int Chord_Node::get_socket_fd(std::string adr, int prt){
-	int sockfd, numbytes;  
-	char buf[MAXDATASIZE];
+	int sockfd;
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
@@ -571,17 +569,20 @@ int Chord_Node::get_socket_fd(std::string adr, int prt){
 int Chord_Node::test_send(std::string m, std::string i,int p){
 	int sockfd = get_socket_fd(i,p);
 	close(send_msg(m,sockfd));
+	return sockfd;
 }
 
 int Chord_Node::test_proto_exec(std::string m, std::string i,int p){
 	int sockfd = get_socket_fd(i,p);
 	std::cout << proto_exec(m,sockfd);
 	close(sockfd);
+	return sockfd;
 }
 
 int Chord_Node::test_random_finger(){
 	for(int i = 1; i <= M_M; i++)
 		finger_table[i].second = node_info("localhost",3501,key);
+	return 0;
 }
 
 int Chord_Node::test_print_debug(){
@@ -600,4 +601,5 @@ int Chord_Node::test_print_debug(){
 		msg += "\n";
 	}
 	std::cout << msg;
+	return 0;
 }

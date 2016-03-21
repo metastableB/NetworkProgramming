@@ -183,7 +183,6 @@ void* sthread_func(void* x_) {
 
 	printf("server: waiting for connections on [localhost:%d]\n",port);
 
-	char buf[MAXDATASIZE];
 	sin_size = sizeof their_addr;
 
 	while (1) {
@@ -333,6 +332,7 @@ std::string get_response(std::string req){
 		chord->migrate_data();
 		return "MIGRATED";
 	}
+	return "";
 }
 
 void *rthread_func(void *p_){
@@ -346,7 +346,6 @@ void *rthread_func(void *p_){
 			break;
 		}
 		buf[bread] = '\0';
-		int t;
 		std::string c = get_response(buf);
 #ifdef __DEBUG__
 		printf("_>> %s\n",buf);	
