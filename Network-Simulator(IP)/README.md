@@ -3,8 +3,6 @@ A network simulator with muli source and single switch simulation. The switch su
 
 ## TODO
 - [ ] Burst Mode debugging
-- [ ] Queuing delay vs Burst Size
-- [ ] Queuing delay vs Burst Time Delta
 - [X] Queuing delay vs Packet Sending Rate
 - [X] Queuing delay vs Queue Size at Source
 - [X] Lost Packets at Source vs Queue size
