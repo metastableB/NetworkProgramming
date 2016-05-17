@@ -2,7 +2,7 @@
 
 These are some projects I undertook to understand socket programming, P2P communication and data transfer and other networking concepts. They were some major coding and implementation challenges and hence the github repository.
 
-Visit individual folders for their `README.md`. I never intended these code to be read only so there is no detailed documentation, but I think the comments should be enough.
+Visit individual folders for their `README.md`. I never intended these code to be reusable so there is no detailed documentation, but I think the comments should be enough.
 
 The different apps are sorted into corresponding folders:
 
